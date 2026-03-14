@@ -1,30 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reaction Duel Cloud Computing</title>
+    <title>Reaction Duel — Cloud Computing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-
         :root {
-            --bg-dark: #0a0a0f;
-            --bg-card: rgba(15, 15, 25, 0.85);
-            --accent-cyan: #00f5ff;
-            --accent-pink: #ff2d75;
+            --bg-dark:       #0a0a0f;
+            --bg-card:       rgba(15, 15, 25, 0.85);
+            --accent-cyan:   #00f5ff;
+            --accent-pink:   #ff2d75;
             --accent-orange: #ff8c00;
-            --accent-green: #00ff88;
-            --glow-cyan: 0 0 30px rgba(0, 245, 255, 0.5);
-            --glow-pink: 0 0 30px rgba(255, 45, 117, 0.5);
+            --accent-green:  #00ff88;
+            --accent-yellow: #ffe600;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Rajdhani', sans-serif;
@@ -34,447 +27,322 @@
             min-height: 100vh;
         }
 
+        /* ── Background Video ── */
         .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0;
-            overflow: hidden;
+            position: fixed; inset: 0; z-index: 0; overflow: hidden;
         }
-
         #bg-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.4;
-            filter: saturate(1.2);
+            width: 100%; height: 100%;
+            object-fit: cover; opacity: 0.35; filter: saturate(1.2);
         }
-
         .video-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                135deg,
-                rgba(10, 10, 15, 0.7) 0%,
-                rgba(20, 10, 30, 0.6) 50%,
-                rgba(10, 10, 15, 0.8) 100%
-            );
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg,
+                rgba(10,10,15,.75) 0%,
+                rgba(20,10,30,.65) 50%,
+                rgba(10,10,15,.85) 100%);
             pointer-events: none;
         }
 
+        /* ── Screens ── */
         .screen {
-            position: relative;
-            z-index: 10;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: relative; z-index: 10;
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             padding: 20px;
         }
+        .hidden { display: none !important; }
 
-        .hidden {
-            display: none !important;
-        }
-
-        #lobby-screen {
-            gap: 30px;
-        }
+        /* ══════════════════════════════════════
+           LOBBY
+        ══════════════════════════════════════ */
+        #lobby-screen { gap: 24px; }
 
         .game-title {
             font-family: 'Orbitron', monospace;
-            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-size: clamp(2rem, 6vw, 4rem);   /* FIX: lebih kecil */
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 8px;
+            letter-spacing: 6px;
             color: #fff;
-            text-shadow: 
-                0 0 10px var(--accent-cyan),
-                0 0 30px var(--accent-cyan),
-                0 0 50px var(--accent-cyan);
+            text-shadow: 0 0 10px var(--accent-cyan), 0 0 30px var(--accent-cyan);
             animation: titlePulse 3s ease-in-out infinite;
         }
-
         @keyframes titlePulse {
-            0%, 100% { 
-                text-shadow: 
-                    0 0 10px var(--accent-cyan),
-                    0 0 30px var(--accent-cyan);
-            }
-            50% { 
-                text-shadow: 
-                    0 0 20px var(--accent-cyan),
-                    0 0 50px var(--accent-cyan),
-                    0 0 80px var(--accent-cyan);
-            }
+            0%,100% { text-shadow: 0 0 10px var(--accent-cyan), 0 0 25px var(--accent-cyan); }
+            50%      { text-shadow: 0 0 20px var(--accent-cyan), 0 0 50px var(--accent-cyan), 0 0 70px var(--accent-cyan); }
         }
 
         .subtitle {
-            font-size: 1.2rem;
-            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            color: rgba(255,255,255,.55);
             letter-spacing: 4px;
             text-transform: uppercase;
-            margin-top: -15px;
+            margin-top: -10px;
         }
 
         .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
+            display: flex; flex-direction: column;
+            gap: 12px; align-items: center;
         }
 
         #username-input {
-            width: 300px;
-            max-width: 90vw;
-            padding: 18px 25px;
-            font-size: 1.2rem;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 500;
+            width: 280px; max-width: 88vw;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-family: 'Rajdhani', sans-serif; font-weight: 500;
             text-align: center;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(0, 245, 255, 0.3);
-            border-radius: 12px;
-            color: #fff;
-            outline: none;
-            transition: all 0.3s ease;
+            background: rgba(255,255,255,.05);
+            border: 2px solid rgba(0,245,255,.3);
+            border-radius: 10px; color: #fff; outline: none;
+            transition: all .3s;
         }
-
-        #username-input::placeholder {
-            color: rgba(255,255,255,0.4);
-        }
-
+        #username-input::placeholder { color: rgba(255,255,255,.4); }
         #username-input:focus {
             border-color: var(--accent-cyan);
-            box-shadow: 0 0 25px rgba(0, 245, 255, 0.3);
-            background: rgba(0, 245, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0,245,255,.25);
+            background: rgba(0,245,255,.04);
         }
 
         #join-btn {
-            padding: 18px 60px;
-            font-size: 1.3rem;
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+            padding: 14px 48px;
+            font-size: 1.1rem;
+            font-family: 'Orbitron', monospace; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
             background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 30px rgba(255, 45, 117, 0.4);
+            border: none; border-radius: 10px; color: #fff;
+            cursor: pointer; transition: all .3s;
+            box-shadow: 0 4px 24px rgba(255,45,117,.4);
         }
-
-        #join-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 40px rgba(255, 45, 117, 0.6);
-        }
-
-        #join-btn:active {
-            transform: translateY(0) scale(0.98);
-        }
+        #join-btn:hover  { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 32px rgba(255,45,117,.6); }
+        #join-btn:active { transform: translateY(0) scale(.98); }
+        #join-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
         #player-list {
             background: var(--bg-card);
-            border: 1px solid rgba(0, 245, 255, 0.2);
-            border-radius: 16px;
-            padding: 25px 35px;
-            min-width: 280px;
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,245,255,.2);
+            border-radius: 14px; padding: 20px 28px;
+            min-width: 260px; backdrop-filter: blur(10px);
         }
-
         #player-list h3 {
             font-family: 'Orbitron', monospace;
-            font-size: 0.9rem;
-            letter-spacing: 3px;
-            color: var(--accent-cyan);
-            margin-bottom: 15px;
+            font-size: .8rem; letter-spacing: 3px;
+            color: var(--accent-cyan); margin-bottom: 12px;
             text-transform: uppercase;
         }
-
-        #players {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
+        #players { list-style: none; display: flex; flex-direction: column; gap: 6px; }
         #players li {
-            padding: 10px 15px;
-            background: rgba(0, 245, 255, 0.1);
-            border-radius: 8px;
-            border-left: 3px solid var(--accent-cyan);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(0,245,255,.08);
+            border-radius: 7px; border-left: 3px solid var(--accent-cyan);
+            font-weight: 500; font-size: .95rem;
+            display: flex; align-items: center; gap: 8px;
         }
-
-        #players li::before {
-            content: '▸';
-            color: var(--accent-cyan);
-        }
-
-        #players li.ready {
-            border-left-color: var(--accent-green);
-            background: rgba(0, 255, 136, 0.1);
-        }
-
-        #players li.ready::before {
-            content: '✓';
-            color: var(--accent-green);
-        }
+        #players li::before { content: '▸'; color: var(--accent-cyan); }
+        #players li.ready { border-left-color: var(--accent-green); background: rgba(0,255,136,.08); }
+        #players li.ready::before { content: '✓'; color: var(--accent-green); }
 
         #status-text {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.5);
+            font-size: .9rem; color: rgba(255,255,255,.5);
             animation: blink 1.5s infinite;
         }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+        /* ── Dashboard link ── */
+        .dashboard-link {
+            position: fixed; bottom: 20px; right: 20px; z-index: 999;
+            padding: 10px 18px;
+            background: rgba(255,230,0,.15);
+            border: 1px solid var(--accent-yellow);
+            border-radius: 8px; color: var(--accent-yellow);
+            font-family: 'Orbitron', monospace; font-size: .75rem;
+            text-decoration: none; letter-spacing: 1px;
+            transition: all .3s;
         }
+        .dashboard-link:hover { background: rgba(255,230,0,.25); }
 
-        #game-screen {
-            padding: 0;
-        }
+        /* ══════════════════════════════════════
+           GAME SCREEN
+        ══════════════════════════════════════ */
+        #game-screen { padding: 0; }
 
         #game-area {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
+            position: relative; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer; overflow: hidden;
+            user-select: none;
         }
 
+        /* Color overlay */
         #color-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            transition: background-color 0.15s ease-out;
-            background-color: transparent;
+            position: absolute; inset: 0; z-index: 1;
+            transition: background-color .15s ease-out;
         }
+        .state-wait  #color-overlay { background: radial-gradient(ellipse at center, rgba(180,20,20,.9) 0%, rgba(100,0,0,.95) 70%); }
+        .state-go    #color-overlay { background: radial-gradient(ellipse at center, rgba(0,220,90,.9) 0%, rgba(0,130,45,.95) 70%); animation: goPulse .3s ease-out; }
+        .state-result #color-overlay { background: radial-gradient(ellipse at center, rgba(0,40,90,.9) 0%, rgba(0,15,45,.95) 70%); }
+        .state-early #color-overlay { background: radial-gradient(ellipse at center, rgba(255,140,0,.9) 0%, rgba(180,70,0,.95) 70%); }
+        @keyframes goPulse { 0%{transform:scale(1)} 50%{transform:scale(1.015)} 100%{transform:scale(1)} }
 
-        .state-wait #color-overlay {
-            background: radial-gradient(ellipse at center, 
-                rgba(180, 20, 20, 0.9) 0%, 
-                rgba(100, 0, 0, 0.95) 70%);
-        }
-
-        .state-go #color-overlay {
-            background: radial-gradient(ellipse at center, 
-                rgba(0, 255, 100, 0.9) 0%, 
-                rgba(0, 150, 50, 0.95) 70%);
-            animation: goPulse 0.3s ease-out;
-        }
-
-        @keyframes goPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        .state-result #color-overlay {
-            background: radial-gradient(ellipse at center, 
-                rgba(0, 50, 100, 0.9) 0%, 
-                rgba(0, 20, 50, 0.95) 70%);
-        }
-
-        .state-early #color-overlay {
-            background: radial-gradient(ellipse at center, 
-                rgba(255, 140, 0, 0.9) 0%, 
-                rgba(200, 80, 0, 0.95) 70%);
-        }
-
+        /* ── FIX: Game message sizing ── */
         #game-message {
             font-family: 'Orbitron', monospace;
-            font-size: clamp(4rem, 15vw, 10rem);
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 10px;
+            letter-spacing: 6px;
             z-index: 10;
             pointer-events: none;
             text-align: center;
-            line-height: 1.2;
-            text-shadow: 0 0 50px rgba(0,0,0,0.8);
+            white-space: pre-line;          /* FIX: render \n sebagai baris baru */
+            line-height: 1.3;
+            text-shadow: 0 0 40px rgba(0,0,0,.7);
         }
 
+        /* Ukuran teks per state — FIX utama */
+        .state-wait  #game-message,
+        .state-early #game-message {
+            font-size: clamp(2.5rem, 8vw, 5rem);   /* lebih kecil dari sebelumnya */
+        }
         .state-go #game-message {
+            font-size: clamp(3.5rem, 11vw, 7rem);
             color: #fff;
-            text-shadow: 
-                0 0 20px rgba(0, 255, 100, 0.8),
-                0 0 50px rgba(0, 255, 100, 0.5);
-            animation: messageFlash 0.15s ease-out;
+            text-shadow: 0 0 20px rgba(0,255,100,.8), 0 0 50px rgba(0,255,100,.5);
+            animation: msgFlash .15s ease-out;
         }
-
-        @keyframes messageFlash {
-            0% { transform: scale(1.3); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .state-result #game-message {
+            font-size: clamp(1.6rem, 4.5vw, 3rem); /* FIX: hasil jangan raksasa */
+            color: #fff;
         }
+        @keyframes msgFlash { 0%{transform:scale(1.25);opacity:0} 100%{transform:scale(1);opacity:1} }
 
-        #stats-panel {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+        /* ── Round indicator ── */
+        #round-indicator {
+            position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
             z-index: 20;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem; color: var(--accent-cyan); letter-spacing: 3px;
+            background: rgba(0,0,0,.4); padding: 6px 16px; border-radius: 20px;
+            border: 1px solid rgba(0,245,255,.2);
         }
 
+        /* ── Stats panel ── */
+        #stats-panel {
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 20; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+        }
         .stat-card {
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid rgba(0, 245, 255, 0.3);
-            border-radius: 12px;
-            padding: 15px 25px;
-            min-width: 150px;
-            text-align: center;
+            background: rgba(0,0,0,.65);
+            border: 1px solid rgba(0,245,255,.25);
+            border-radius: 10px; padding: 12px 20px;
+            min-width: 130px; text-align: center;
             backdrop-filter: blur(10px);
         }
-
         .stat-label {
-            font-size: 0.75rem;
-            color: var(--accent-cyan);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
+            font-size: .7rem; color: var(--accent-cyan);
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;
         }
-
         .stat-value {
             font-family: 'Orbitron', monospace;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #fff;
+            font-size: 1.5rem; font-weight: 700; color: #fff; /* FIX: dari 1.8rem */
         }
+        .stat-unit { font-size: .8rem; color: rgba(255,255,255,.55); }
 
-        .stat-unit {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.6);
+        /* ── Score panel (tampil saat game aktif) ── */
+        #score-panel {
+            position: absolute; top: 24px; right: 20px;
+            z-index: 20; display: flex; flex-direction: column; gap: 6px;
         }
-
-        #round-indicator {
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
-            font-family: 'Orbitron', monospace;
-            font-size: 1.2rem;
-            color: var(--accent-cyan);
-            letter-spacing: 3px;
+        .score-item {
+            background: rgba(0,0,0,.55);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 8px; padding: 6px 14px;
+            font-size: .85rem; display: flex; justify-content: space-between; gap: 14px;
         }
+        .score-name { color: rgba(255,255,255,.7); }
+        .score-pts  { font-family: 'Orbitron', monospace; color: var(--accent-cyan); font-size: .85rem; }
 
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--accent-cyan);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 5;
-            opacity: 0.6;
-        }
-
-        @media (max-width: 768px) {
-            .game-title {
-                letter-spacing: 4px;
-            }
-
-            #username-input {
-                width: 90vw;
-            }
-
-            .stat-card {
-                min-width: 120px;
-                padding: 12px 15px;
-            }
-
-            .stat-value {
-                font-size: 1.4rem;
-            }
-
-            #stats-panel {
-                bottom: 15px;
-                gap: 10px;
-            }
+        /* ══════════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════════ */
+        @media (max-width: 600px) {
+            .game-title { letter-spacing: 3px; }
+            #username-input { width: 90vw; }
+            .stat-card { min-width: 100px; padding: 10px 12px; }
+            .stat-value { font-size: 1.2rem; }
+            #stats-panel { bottom: 12px; gap: 8px; }
+            .state-result #game-message { font-size: clamp(1.2rem, 5vw, 2rem); }
         }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
-                animation-duration: 0.01ms !important;
+                animation-duration: .01ms !important;
                 animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+                transition-duration: .01ms !important;
             }
         }
     </style>
 </head>
 <body>
-    <div class="video-container">
-        <video autoplay muted loop id="bg-video">
-            <source src="asset/background.webm" type="video/webm">
-        </video>
-        <div class="video-overlay"></div>
+
+<div class="video-container">
+    <video autoplay muted loop id="bg-video">
+        <source src="asset/background.webm" type="video/webm">
+    </video>
+    <div class="video-overlay"></div>
+</div>
+
+<!-- ════════════ LOBBY ════════════ -->
+<div id="lobby-screen" class="screen">
+    <h1 class="game-title">Reaction Duel</h1>
+    <p class="subtitle">Test Your Reflexes</p>
+
+    <div class="input-group">
+        <input type="text" id="username-input" placeholder="Masukkan Nama..." maxlength="20" autocomplete="off">
+        <button id="join-btn">Join Room</button>
     </div>
 
-    <div id="lobby-screen" class="screen">
-        <h1 class="game-title">Reaction Duel</h1>
-        <p class="subtitle">Test Your Reflexes</p>
-        
-        <div class="input-group">
-            <input type="text" id="username-input" placeholder="Masukkan Nama..." maxlength="20">
-            <button id="join-btn">Join Room</button>
-        </div>
-        
-        <div id="player-list">
-            <h3>Players in Room</h3>
-            <ul id="players">
-            </ul>
-        </div>
-        
-        <p id="status-text">Menunggu pemain lain...</p>
+    <div id="player-list">
+        <h3>Players in Room</h3>
+        <ul id="players"></ul>
     </div>
 
-    <div id="game-screen" class="screen hidden">
-        <div id="round-indicator">RONDE 1 / 5</div>
-        
-        <div id="game-area">
-            <div id="color-overlay"></div>
-            <h1 id="game-message">WAIT...</h1>
-        </div>
-        
-        <div id="stats-panel">
-            <div class="stat-card">
-                <div class="stat-label">Rata-rata</div>
-                <div class="stat-value"><span id="stat-avg">---</span> <span class="stat-unit">ms</span></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Konsistensi</div>
-                <div class="stat-value"><span id="stat-consistency">---</span> <span class="stat-unit">ms</span></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Terbaik</div>
-                <div class="stat-value"><span id="stat-best">---</span> <span class="stat-unit">ms</span></div>
-            </div>
-        </div>
+    <p id="status-text">Menunggu pemain lain...</p>
+</div>
+
+<!-- ════════════ GAME ════════════ -->
+<div id="game-screen" class="screen hidden">
+    <div id="round-indicator">RONDE 1 / 5</div>
+
+    <div id="game-area" class="state-wait">
+        <div id="color-overlay"></div>
+        <h1 id="game-message">WAIT...</h1>
     </div>
 
-    <script src="client.js"></script>
+    <!-- Skor live per pemain -->
+    <div id="score-panel"></div>
+
+    <!-- Statistik reaksi sendiri -->
+    <div id="stats-panel">
+        <div class="stat-card">
+            <div class="stat-label">Rata-rata</div>
+            <div class="stat-value"><span id="stat-avg">---</span> <span class="stat-unit">ms</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Konsistensi</div>
+            <div class="stat-value"><span id="stat-consistency">---</span> <span class="stat-unit">ms</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Terbaik</div>
+            <div class="stat-value"><span id="stat-best">---</span> <span class="stat-unit">ms</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════ Tombol & Link ════════════ -->
+<a href="dashboard.html" class="dashboard-link">📊 Dashboard</a>
+
+<script src="client.js"></script>
 </body>
 </html>

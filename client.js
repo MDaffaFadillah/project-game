@@ -1,8 +1,4 @@
-// ─── Konfigurasi Server ─────────────────────────────────────────────────────
-//  Ganti ke 'wss://nama-app.railway.app' saat sudah deploy online
-//  PENTING: gunakan ws:// untuk lokal, wss:// untuk online (HTTPS/SSL)
-// ─────────────────────────────────────────────────────────────────────────────
-const SERVER_URL = 'ws://localhost:8080';
+const SERVER_URL = 'wss://project-game-production-ea26.up.railway.app';
 
 let socket;
 let myUsername  = "Player";

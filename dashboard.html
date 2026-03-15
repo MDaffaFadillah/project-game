@@ -341,8 +341,8 @@
 //  endpoint PHP (db_api.php) milik Adam.
 // ══════════════════════════════════════════════
 
-const STORAGE_KEY = 'reactionDuel_sessions';
-
+const API_URL = 'public/db_api.php';
+    
 function getSessions() {
     try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');

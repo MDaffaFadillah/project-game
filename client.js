@@ -120,6 +120,7 @@ function showGameScreen() {
   currentRound = 1;
   reactionHistory = [];
   roundResults = [];
+  myLastReactionTime = null;
   updateRoundIndicator();
   updateStats();
 }
@@ -148,7 +149,6 @@ function setGoState() {
   gameMessage.textContent = "CLICK!";
 }
 
-// FIX: updateStats() hanya dipanggil saat menang (reactionHistory terisi)
 function showResult(winner, time) {
   isGameActive = false;
   gameArea.className = "state-result";
@@ -156,9 +156,15 @@ function showResult(winner, time) {
   if (winner === myUsername) {
     gameMessage.textContent = `MENANG!\n${time} ms`;
     reactionHistory.push(parseFloat(time));
-    updateStats(); // update hanya saat punya data reaksi
+    updateStats();
   } else {
     gameMessage.textContent = `${winner}\nMENANG`;
+    // FIX: simpan waktu reaksi sendiri meski kalah (dari klik lokal)
+    if (myLastReactionTime !== null) {
+      reactionHistory.push(myLastReactionTime);
+      updateStats();
+      myLastReactionTime = null;
+    }
   }
 
   roundResults.push({ winner, time });

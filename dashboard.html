@@ -341,7 +341,8 @@
 //  endpoint PHP (db_api.php) milik Adam.
 // ══════════════════════════════════════════════
 
-const API_URL = 'public/db_api.php';
+const STORAGE_KEY = 'reactionDuel_sessions'; // FIX: was missing!
+const API_URL = 'https://mdaffafadillah.github.io/project-game/public/db_api.php';
     
 function getSessions() {
     try {
@@ -421,35 +422,60 @@ function renderInsight() {
     }
 }
 
-// ── Leaderboard ───────────────────────────────
-function renderLeaderboard() {
-    const playerMap = {};
-    sessions.forEach(s => {
-        s.players?.forEach(p => {
-            if (!playerMap[p.username]) {
-                playerMap[p.username] = { username: p.username, scores: [], times: [], bests: [] };
-            }
-            playerMap[p.username].scores.push(p.score || 0);
-            if (p.avgTime)  playerMap[p.username].times.push(parseFloat(p.avgTime));
-            if (p.bestTime) playerMap[p.username].bests.push(parseFloat(p.bestTime));
-        });
-    });
-
-    const rows = Object.values(playerMap).map(p => ({
-        username:    p.username,
-        totalScore:  p.scores.reduce((a,b)=>a+b,0),
-        avgTime:     p.times.length ? (p.times.reduce((a,b)=>a+b,0)/p.times.length).toFixed(0) : null,
-        bestTime:    p.bests.length ? Math.min(...p.bests).toFixed(0) : null,
-        consistency: p.times.length > 1
-            ? (Math.max(...p.times) - Math.min(...p.times)).toFixed(0)
-            : null,
-    })).sort((a,b) => b.totalScore - a.totalScore);
-
+// ── Leaderboard ─────────────────────────────
+// Coba ambil dari db_api.php (Adam), fallback ke localStorage
+async function renderLeaderboard() {
     const tbody = document.getElementById('leaderboard-body');
-    if (!rows.length) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:rgba(255,255,255,.4)">Memuat...</td></tr>';
+
+    let rows = [];
+
+    // Coba dari API Adam dulu
+    try {
+        const res  = await fetch('public/db_api.php?action=get_leaderboard');
+        const json = await res.json();
+        if (json.status === 'success' && json.data.length > 0) {
+            rows = json.data.map(r => ({
+                username:    r.username,
+                totalScore:  parseInt(r.score),
+                avgTime:     r.avg_reaction_time ? parseFloat(r.avg_reaction_time).toFixed(0) : null,
+                bestTime:    r.best_time         ? parseFloat(r.best_time).toFixed(0)         : null,
+                consistency: null,
+            }));
+        }
+    } catch(e) {
+        console.warn('[LB] API gagal, fallback ke localStorage:', e);
+    }
+
+    // Fallback: hitung dari localStorage jika API kosong/gagal
+    if (!rows.length) {
+        const playerMap = {};
+        sessions.forEach(s => {
+            s.players?.forEach(p => {
+                if (!playerMap[p.username]) {
+                    playerMap[p.username] = { username: p.username, scores: [], times: [], bests: [] };
+                }
+                playerMap[p.username].scores.push(p.score || 0);
+                if (p.avgTime)  playerMap[p.username].times.push(parseFloat(p.avgTime));
+                if (p.bestTime) playerMap[p.username].bests.push(parseFloat(p.bestTime));
+            });
+        });
+        rows = Object.values(playerMap).map(p => ({
+            username:    p.username,
+            totalScore:  p.scores.reduce((a,b)=>a+b,0),
+            avgTime:     p.times.length ? (p.times.reduce((a,b)=>a+b,0)/p.times.length).toFixed(0) : null,
+            bestTime:    p.bests.length ? Math.min(...p.bests).toFixed(0) : null,
+            consistency: p.times.length > 1 ? (Math.max(...p.times)-Math.min(...p.times)).toFixed(0) : null,
+        })).sort((a,b) => b.totalScore - a.totalScore);
+    }
+
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="icon">🏆</span>Belum ada data</div></td></tr>';
+        return;
+    }
 
     tbody.innerHTML = rows.map((r, i) => {
-        const avg  = parseFloat(r.avgTime);
+        const avg  = parseFloat(r.avgTime) || 999;
         const grade = avg < 200 ? 'WIN' : avg < 300 ? 'GOOD' : 'AVG';
         const badgeClass = grade === 'WIN' ? 'badge-win' : grade === 'GOOD' ? 'badge-good' : 'badge-avg';
         const rankClass  = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
@@ -645,7 +671,7 @@ function renderEmptyChart(ctx, id) {
 // ── Init ──────────────────────────────────────
 renderSummary();
 renderInsight();
-renderLeaderboard();
+renderLeaderboard(); // async, will update when done
 renderHistory();
 buildTrendChart();
 buildDistChart();

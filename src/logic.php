@@ -383,6 +383,12 @@ class Logic implements MessageComponentInterface {
         try {
             $db = getDB();
 
+            // Jika DB tidak tersedia, skip simpan — server tidak crash
+            if ($db === null) {
+                echo "[DB ERR] getDB() null, skip penyimpanan.\n";
+                return;
+            }
+
             $stmt = $db->prepare("
                 INSERT INTO players_stats
                     (username, score, avg_reaction_time, best_time)

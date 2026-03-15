@@ -1,35 +1,32 @@
 <?php
 // src/db.php
-// Fokus Adam: Koneksi PDO yang Aman & Dinamis (Railway & Local)
 
-// Mengambil variabel dari sistem Railway. 
-// Tanda "?:" berarti jika variabel Railway kosong, gunakan default (sebelah kanannya)
-$host = getenv('mysql.railway.internal')     ?: 'localhost';
-$port = getenv('17415')     ?: '3306';
-$db   = getenv('railway') ?: 'project-game';
-$user = getenv('root')     ?: 'root';
-$pass = getenv('bOohuEGFZvfVPXxHbHwqZusslSLIQTAr') ?: '';
-$charset = 'utf8mb4';
+function getDB(): ?PDO {
+    static $pdo = null;
+    if ($pdo !== null) return $pdo;
 
-// Merangkai DSN (Data Source Name)
-$dsn = "mysql:host=$host;port=$port;dbname=$db;charset=$charset";
+    // Nama env var resmi dari Railway MySQL
+    $host    = getenv('MYSQLHOST')     ?: 'localhost';
+    $port    = getenv('MYSQLPORT')     ?: '3306';
+    $db      = getenv('MYSQLDATABASE') ?: 'railway';
+    $user    = getenv('MYSQLUSER')     ?: 'root';
+    $pass    = getenv('MYSQLPASSWORD') ?: '';
+    $charset = 'utf8mb4';
 
-// Opsi keamanan PDO untuk mencegah SQL Injection
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Langsung tampilkan error jika query salah
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Ambil data dalam bentuk array rapi
-    PDO::ATTR_EMULATE_PREPARES   => false,                  // Gunakan prepared statement asli MySQL
-];
+    $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=$charset";
 
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-    // JANGAN lakukan echo apapun di file ini. 
-    // Biarkan kosong jika berhasil, agar tidak merusak format JSON di db_api.php nanti.
-} catch (\PDOException $e) {
-    // Matikan eksekusi dan tampilkan pesan jika gagal terkoneksi
-    die(json_encode([
-        'status' => 'error', 
-        'message' => 'Koneksi Database Gagal: ' . $e->getMessage()
-    ]));
+    try {
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ]);
+        echo "[DB]     Koneksi database berhasil!\n";
+        return $pdo;
+
+    } catch (\PDOException $e) {
+        // TIDAK pakai die() — server tetap hidup meski DB down
+        echo "[DB ERR] Koneksi gagal: {$e->getMessage()}\n";
+        return null;
+    }
 }
-?>

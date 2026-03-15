@@ -422,6 +422,23 @@ class Logic implements MessageComponentInterface {
                 echo "[DB]     Disimpan: {$p['username']} | Skor: {$p['score']} | Avg: {$p['avgTime']}ms\n";
             }
 
+            // ── Simpan tiap ronde ke round_logs ──────────────────────────
+            if (!empty($this->roundLog)) {
+                $stmtRound = $db->prepare("
+                    INSERT INTO round_logs (username, reaction_time, is_foul)
+                    VALUES (:username, :time, 0)
+                ");
+
+                foreach ($this->roundLog as $r) {
+                    $stmtRound->execute([
+                        ':username' => $r['winner'],
+                        ':time'     => $r['time'],
+                    ]);
+                }
+
+                echo "[DB]     Round logs disimpan: " . count($this->roundLog) . " ronde\n";
+            }
+
         } catch (\PDOException $e) {
             // Server TIDAK crash — hanya log error
             echo "[DB ERR] Gagal simpan ke database: {$e->getMessage()}\n";

@@ -4,11 +4,11 @@
 
 // Mengambil variabel dari sistem Railway. 
 // Tanda "?:" berarti jika variabel Railway kosong, gunakan default (sebelah kanannya)
-$host = getenv('mongodb.railway.internal')     ?: 'localhost';
-$port = getenv('27017')     ?: '3306';
-$db   = getenv('project-game') ?: 'project-game';
-$user = getenv('mongo')     ?: 'root';
-$pass = getenv('SsKhCOOKGFNicurxudWrOaRMrLgACupI') ?: '';
+$host = getenv('mysql.railway.internal')     ?: 'localhost';
+$port = getenv('17415')     ?: '3306';
+$db   = getenv('railway') ?: 'project-game';
+$user = getenv('root')     ?: 'root';
+$pass = getenv('bOohuEGFZvfVPXxHbHwqZusslSLIQTAr') ?: '';
 $charset = 'utf8mb4';
 
 // Merangkai DSN (Data Source Name)

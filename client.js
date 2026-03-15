@@ -1,26 +1,22 @@
-// ─── Konfigurasi Server ─────────────────────────────────────────────────────
-//  Ganti ke 'wss://nama-app.railway.app' saat sudah deploy online
-//  PENTING: gunakan ws:// untuk lokal, wss:// untuk online (HTTPS/SSL)
-// ─────────────────────────────────────────────────────────────────────────────
-const SERVER_URL = 'ws://localhost:8080';
+const SERVER_URL = 'wss://project-game-production-ea26.up.railway.app';
 
 let socket;
-let myUsername  = "Player";
-let startTime   = 0;
+let myUsername   = "Player";
+let startTime    = 0;
 let isGameActive = false;
 let currentRound = 1;
 let maxRounds    = 5;
 let reactionHistory = [];
 let roundResults    = [];
 
-const lobbyScreen   = document.getElementById('lobby-screen');
-const gameScreen    = document.getElementById('game-screen');
-const gameArea      = document.getElementById('game-area');
-const gameMessage   = document.getElementById('game-message');
-const usernameInput = document.getElementById('username-input');
-const joinBtn       = document.getElementById('join-btn');
-const playerListUI  = document.getElementById('players');
-const statusText    = document.getElementById('status-text');
+const lobbyScreen    = document.getElementById('lobby-screen');
+const gameScreen     = document.getElementById('game-screen');
+const gameArea       = document.getElementById('game-area');
+const gameMessage    = document.getElementById('game-message');
+const usernameInput  = document.getElementById('username-input');
+const joinBtn        = document.getElementById('join-btn');
+const playerListUI   = document.getElementById('players');
+const statusText     = document.getElementById('status-text');
 const roundIndicator = document.getElementById('round-indicator');
 
 const statAvg         = document.getElementById('stat-avg');
@@ -87,7 +83,6 @@ function handleServerMessage(data) {
             break;
 
         case 'TOO_EARLY':
-            // message.culprit = nama pemain yang klik terlalu cepat
             showTooEarly(message.culprit);
             break;
 
@@ -97,7 +92,6 @@ function handleServerMessage(data) {
             break;
 
         case 'GAME_OVER':
-            // message.stats = array objek per pemain (lihat endGame() di logic.php)
             showFinalStats(message.stats);
             break;
 
@@ -153,6 +147,7 @@ function setGoState() {
     gameMessage.textContent = "CLICK!";
 }
 
+// FIX: updateStats() hanya dipanggil saat menang (reactionHistory terisi)
 function showResult(winner, time) {
     isGameActive       = false;
     gameArea.className = 'state-result';
@@ -160,7 +155,7 @@ function showResult(winner, time) {
     if (winner === myUsername) {
         gameMessage.textContent = `MENANG!\n${time} ms`;
         reactionHistory.push(parseFloat(time));
-        updateStats();
+        updateStats(); // update hanya saat punya data reaksi
     } else {
         gameMessage.textContent = `${winner}\nMENANG`;
     }
@@ -200,21 +195,23 @@ function updateStats() {
     statBest.textContent        = fastest.toFixed(0);
 }
 
+// FIX: tampilkan stats dari data server, update panel bawah, simpan ke localStorage
 function showFinalStats(stats) {
     console.log('Final Stats:', stats);
     gameArea.className = 'state-result';
 
     if (Array.isArray(stats) && stats.length > 0) {
         const top = stats[0];
-        // Cari data milik pemain sendiri
+
+        // Cari data milik pemain sendiri untuk panel stats bawah
         const me = stats.find(p => p.username === myUsername) || top;
 
         gameMessage.textContent =
             `JUARA: ${top.username}\n` +
             `Skor: ${top.score}\n` +
-            `Avg: ${top.avgTime ?? "---"}ms  Best: ${top.bestTime ?? "---"}ms`;
+            `Avg: ${top.avgTime ?? '---'}ms  Best: ${top.bestTime ?? '---'}ms`;
 
-        // Update stats panel bawah dengan data dari server (lebih akurat)
+        // Update stat panel bawah dari data server (lebih akurat dari lokal)
         if (me.avgTime)     statAvg.textContent         = parseFloat(me.avgTime).toFixed(0);
         if (me.bestTime)    statBest.textContent        = parseFloat(me.bestTime).toFixed(0);
         if (me.consistency) statConsistency.textContent = parseFloat(me.consistency).toFixed(0);
@@ -226,22 +223,22 @@ function showFinalStats(stats) {
     _saveGameSession(stats, roundResults);
 }
 
-// ─── Simpan sesi ke localStorage (untuk dashboard.html) ──────────────────────
+// ─── Simpan sesi ke localStorage (dibaca oleh dashboard.html) ────────────────
 function _saveGameSession(stats, roundLog) {
     try {
-        const STORAGE_KEY = "reactionDuel_sessions";
-        const sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const STORAGE_KEY = 'reactionDuel_sessions';
+        const sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         sessions.unshift({
-            id:        "S" + Date.now(),
+            id:        'S' + Date.now(),
             timestamp: new Date().toISOString(),
             players:   stats,
             roundLog:  roundLog || [],
         });
         if (sessions.length > 50) sessions.pop();
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-        console.log("[SESSION] Tersimpan ke localStorage!");
+        console.log('[SESSION] Tersimpan ke localStorage!');
     } catch(e) {
-        console.warn("[SESSION] Gagal simpan:", e);
+        console.warn('[SESSION] Gagal simpan:', e);
     }
 }
 
@@ -299,7 +296,6 @@ function handleClick(e) {
             // ── Mode Offline ──────────────────────────────────────────────────
             reactionHistory.push(reactionTime);
             showResult(myUsername, reactionTime.toFixed(0));
-            updateStats();
 
             setTimeout(() => {
                 if (currentRound < maxRounds) {
@@ -310,7 +306,7 @@ function handleClick(e) {
                     showFinalStats([{
                         username:    myUsername,
                         score:       reactionHistory.length * 100,
-                        avgTime:     (reactionHistory.reduce((a, b) => a + b, 0) / reactionHistory.length).toFixed(0),
+                        avgTime:     (reactionHistory.reduce((a,b) => a+b, 0) / reactionHistory.length).toFixed(0),
                         bestTime:    Math.min(...reactionHistory).toFixed(0),
                         consistency: (Math.max(...reactionHistory) - Math.min(...reactionHistory)).toFixed(0),
                         penalties:   0,

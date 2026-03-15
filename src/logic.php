@@ -419,6 +419,26 @@ class Logic implements MessageComponentInterface {
         return null;
     }
 
+    private function saveFinalStats($stats) {
+    $db = getDB();
+    if (!$db) return;
+
+    $stmt = $db->prepare("INSERT INTO players_stats (username, score, avg_reaction_time, best_time) 
+                          VALUES (:user, :score, :avg, :best)
+                          ON DUPLICATE KEY UPDATE 
+                          score = score + :score, 
+                          avg_reaction_time = :avg");
+    
+    foreach ($stats as $s) {
+        $stmt->execute([
+            ':user'  => $s['username'],
+            ':score' => $s['score'],
+            ':avg'   => $s['avgTime'],
+            ':best'  => $s['bestTime']
+        ]);
+    }
+}
+
     private function encode(array $data): string {
         return json_encode($data);
     }

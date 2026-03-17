@@ -27,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* ── Background Video ── */
         .video-container {
             position: fixed; inset: 0; z-index: 0; overflow: hidden;
         }
@@ -44,7 +43,6 @@
             pointer-events: none;
         }
 
-        /* ── Screens ── */
         .screen {
             position: relative; z-index: 10;
             width: 100vw; height: 100vh;
@@ -54,14 +52,11 @@
         }
         .hidden { display: none !important; }
 
-        /* ══════════════════════════════════════
-           LOBBY
-        ══════════════════════════════════════ */
         #lobby-screen { gap: 24px; }
 
         .game-title {
             font-family: 'Orbitron', monospace;
-            font-size: clamp(2rem, 6vw, 4rem);   /* FIX: lebih kecil */
+            font-size: clamp(2rem, 6vw, 4rem);
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 6px;
@@ -149,7 +144,6 @@
         }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-        /* ── Dashboard link ── */
         .dashboard-link {
             position: fixed; bottom: 20px; right: 20px; z-index: 999;
             padding: 10px 18px;
@@ -162,10 +156,20 @@
         }
         .dashboard-link:hover { background: rgba(255,230,0,.25); }
 
-        /* ══════════════════════════════════════
-           GAME SCREEN
-        ══════════════════════════════════════ */
         #game-screen { padding: 0; }
+
+        #back-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 100;
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px; color: rgba(255, 255, 255, 0.7);
+            font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+            cursor: pointer; transition: all .3s;
+            backdrop-filter: blur(5px);
+        }
+        #back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
         #game-area {
             position: relative; width: 100%; height: 100%;
@@ -175,49 +179,59 @@
             user-select: none;
         }
 
-        /* Color overlay */
         #color-overlay {
             position: absolute; inset: 0; z-index: 1;
             transition: background-color .15s ease-out;
         }
-        .state-wait  #color-overlay { background: radial-gradient(ellipse at center, rgba(180,20,20,.9) 0%, rgba(100,0,0,.95) 70%); }
-        .state-go    #color-overlay { background: radial-gradient(ellipse at center, rgba(0,220,90,.9) 0%, rgba(0,130,45,.95) 70%); animation: goPulse .3s ease-out; }
-        .state-result #color-overlay { background: radial-gradient(ellipse at center, rgba(0,40,90,.9) 0%, rgba(0,15,45,.95) 70%); }
-        .state-early #color-overlay { background: radial-gradient(ellipse at center, rgba(255,140,0,.9) 0%, rgba(180,70,0,.95) 70%); }
+ 
+        .state-wait  #color-overlay { 
+            background: radial-gradient(ellipse at center, rgba(160, 30, 30, 0.92) 0%, rgba(80, 15, 15, 0.95) 60%, rgba(40, 5, 5, 0.98) 100%); 
+        }
+ 
+        .state-go    #color-overlay { 
+            background: radial-gradient(ellipse at center, rgba(220, 180, 0, 0.92) 0%, rgba(180, 140, 0, 0.95) 60%, rgba(100, 80, 0, 0.98) 100%); 
+            animation: goPulse .3s ease-out; 
+        }
+  
+        .state-result #color-overlay { 
+            background: radial-gradient(ellipse at center, rgba(20, 160, 80, 0.92) 0%, rgba(10, 100, 50, 0.95) 60%, rgba(5, 50, 25, 0.98) 100%); 
+        }
+ 
+        .state-early #color-overlay { 
+            background: radial-gradient(ellipse at center, rgba(200, 100, 0, 0.92) 0%, rgba(150, 70, 0, 0.95) 60%, rgba(80, 40, 0, 0.98) 100%); 
+        }
+        
         @keyframes goPulse { 0%{transform:scale(1)} 50%{transform:scale(1.015)} 100%{transform:scale(1)} }
 
-        /* ── FIX: Game message sizing ── */
         #game-message {
             font-family: 'Orbitron', monospace;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 6px;
+            letter-spacing: 4px; 
             z-index: 10;
             pointer-events: none;
             text-align: center;
-            white-space: pre-line;          /* FIX: render \n sebagai baris baru */
+            white-space: pre-line;
             line-height: 1.3;
             text-shadow: 0 0 40px rgba(0,0,0,.7);
         }
 
-        /* Ukuran teks per state — FIX utama */
         .state-wait  #game-message,
         .state-early #game-message {
-            font-size: clamp(2.5rem, 8vw, 5rem);   /* lebih kecil dari sebelumnya */
+            font-size: clamp(2rem, 7vw, 4.5rem); 
         }
         .state-go #game-message {
-            font-size: clamp(3.5rem, 11vw, 7rem);
-            color: #fff;
-            text-shadow: 0 0 20px rgba(0,255,100,.8), 0 0 50px rgba(0,255,100,.5);
+            font-size: clamp(2.5rem, 9vw, 6rem); 
+            color: #1a1a1a;
+            text-shadow: 0 2px 10px rgba(255, 255, 200, 0.3);
             animation: msgFlash .15s ease-out;
         }
         .state-result #game-message {
-            font-size: clamp(1.6rem, 4.5vw, 3rem); /* FIX: hasil jangan raksasa */
+            font-size: clamp(1.4rem, 4vw, 2.8rem); 
             color: #fff;
         }
         @keyframes msgFlash { 0%{transform:scale(1.25);opacity:0} 100%{transform:scale(1);opacity:1} }
 
-        /* ── Round indicator ── */
         #round-indicator {
             position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
             z-index: 20;
@@ -227,7 +241,6 @@
             border: 1px solid rgba(0,245,255,.2);
         }
 
-        /* ── Stats panel ── */
         #stats-panel {
             position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
             z-index: 20; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
@@ -245,11 +258,10 @@
         }
         .stat-value {
             font-family: 'Orbitron', monospace;
-            font-size: 1.5rem; font-weight: 700; color: #fff; /* FIX: dari 1.8rem */
+            font-size: 1.5rem; font-weight: 700; color: #fff;
         }
         .stat-unit { font-size: .8rem; color: rgba(255,255,255,.55); }
 
-        /* ── Score panel (tampil saat game aktif) ── */
         #score-panel {
             position: absolute; top: 24px; right: 20px;
             z-index: 20; display: flex; flex-direction: column; gap: 6px;
@@ -263,9 +275,6 @@
         .score-name { color: rgba(255,255,255,.7); }
         .score-pts  { font-family: 'Orbitron', monospace; color: var(--accent-cyan); font-size: .85rem; }
 
-        /* ══════════════════════════════════════
-           RESPONSIVE
-        ══════════════════════════════════════ */
         @media (max-width: 600px) {
             .game-title { letter-spacing: 3px; }
             #username-input { width: 90vw; }
@@ -293,7 +302,6 @@
     <div class="video-overlay"></div>
 </div>
 
-<!-- ════════════ LOBBY ════════════ -->
 <div id="lobby-screen" class="screen">
     <h1 class="game-title">Reaction Duel</h1>
     <p class="subtitle">Test Your Reflexes</p>
@@ -311,8 +319,10 @@
     <p id="status-text">Menunggu pemain lain...</p>
 </div>
 
-<!-- ════════════ GAME ════════════ -->
 <div id="game-screen" class="screen hidden">
+
+    <button id="back-btn">← Back to Lobby</button>
+
     <div id="round-indicator">RONDE 1 / 5</div>
 
     <div id="game-area" class="state-wait">
@@ -320,10 +330,8 @@
         <h1 id="game-message">WAIT...</h1>
     </div>
 
-    <!-- Skor live per pemain -->
     <div id="score-panel"></div>
 
-    <!-- Statistik reaksi sendiri -->
     <div id="stats-panel">
         <div class="stat-card">
             <div class="stat-label">Rata-rata</div>
@@ -340,7 +348,6 @@
     </div>
 </div>
 
-<!-- ════════════ Tombol & Link ════════════ -->
 <a href="dashboard.html" class="dashboard-link">📊 Dashboard</a>
 
 <script src="client.js"></script>

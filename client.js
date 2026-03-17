@@ -8,6 +8,8 @@ let currentRound = 1;
 let maxRounds = 5;
 let reactionHistory = [];
 let roundResults = [];
+let myLastReactionTime = null; 
+let simulationTimeout = null; 
 
 const lobbyScreen = document.getElementById("lobby-screen");
 const gameScreen = document.getElementById("game-screen");
@@ -18,12 +20,32 @@ const joinBtn = document.getElementById("join-btn");
 const playerListUI = document.getElementById("players");
 const statusText = document.getElementById("status-text");
 const roundIndicator = document.getElementById("round-indicator");
-
+const backBtn = document.getElementById("back-btn"); 
 const statAvg = document.getElementById("stat-avg");
 const statConsistency = document.getElementById("stat-consistency");
 const statBest = document.getElementById("stat-best");
 
-// ─── Koneksi WebSocket ───────────────────────────────────────────────────────
+function goToLobby() {
+ 
+  if (simulationTimeout) {
+    clearTimeout(simulationTimeout);
+    simulationTimeout = null;
+  }
+  
+  isGameActive = false;
+  gameScreen.classList.add("hidden");
+  lobbyScreen.classList.remove("hidden");
+  
+  reactionHistory = [];
+  roundResults = [];
+  myLastReactionTime = null;
+  currentRound = 1;
+
+  joinBtn.textContent = "Join Room";
+  joinBtn.disabled = false;
+}
+
+backBtn.addEventListener("click", goToLobby);
 
 function connectToServer() {
   socket = new WebSocket(SERVER_URL);
@@ -55,8 +77,6 @@ function connectToServer() {
     statusText.textContent = "Koneksi terputus. Silakan refresh.";
   };
 }
-
-// ─── Router Pesan dari Server ────────────────────────────────────────────────
 
 function handleServerMessage(data) {
   const message = JSON.parse(data);
@@ -111,18 +131,18 @@ function handleServerMessage(data) {
   }
 }
 
-// ─── UI State ────────────────────────────────────────────────────────────────
-
 function showGameScreen() {
   lobbyScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
   setWaitState();
-  currentRound = 1;
+  
+   currentRound = 1;
   reactionHistory = [];
   roundResults = [];
   myLastReactionTime = null;
+  
   updateRoundIndicator();
-  updateStats();
+  updateStats(); 
 }
 
 function updatePlayerList(players) {
@@ -159,7 +179,7 @@ function showResult(winner, time) {
     updateStats();
   } else {
     gameMessage.textContent = `${winner}\nMENANG`;
-    // FIX: simpan waktu reaksi sendiri meski kalah (dari klik lokal)
+
     if (myLastReactionTime !== null) {
       reactionHistory.push(myLastReactionTime);
       updateStats();
@@ -203,7 +223,6 @@ function updateStats() {
   statBest.textContent = fastest.toFixed(0);
 }
 
-// FIX: tampilkan stats dari data server, update panel bawah, simpan ke localStorage
 function showFinalStats(stats) {
   console.log("Final Stats:", stats);
   gameArea.className = "state-result";
@@ -211,7 +230,6 @@ function showFinalStats(stats) {
   if (Array.isArray(stats) && stats.length > 0) {
     const top = stats[0];
 
-    // Cari data milik pemain sendiri untuk panel stats bawah
     const me = stats.find((p) => p.username === myUsername) || top;
 
     gameMessage.textContent =
@@ -219,7 +237,6 @@ function showFinalStats(stats) {
       `Skor: ${top.score}\n` +
       `Avg: ${top.avgTime ?? "---"}ms  Best: ${top.bestTime ?? "---"}ms`;
 
-    // Update stat panel bawah dari data server (lebih akurat dari lokal)
     if (me.avgTime) statAvg.textContent = parseFloat(me.avgTime).toFixed(0);
     if (me.bestTime) statBest.textContent = parseFloat(me.bestTime).toFixed(0);
     if (me.consistency)
@@ -228,11 +245,9 @@ function showFinalStats(stats) {
     gameMessage.textContent = "GAME OVER";
   }
 
-  // Simpan ke localStorage untuk dashboard
   _saveGameSession(stats, roundResults);
 }
 
-// ─── Simpan sesi ke localStorage (dibaca oleh dashboard.html) ────────────────
 function _saveGameSession(stats, roundLog) {
   try {
     const STORAGE_KEY = "reactionDuel_sessions";
@@ -250,8 +265,6 @@ function _saveGameSession(stats, roundLog) {
     console.warn("[SESSION] Gagal simpan:", e);
   }
 }
-
-// ─── Input Handler ───────────────────────────────────────────────────────────
 
 joinBtn.addEventListener("click", () => {
   const name = usernameInput.value.trim();
@@ -278,7 +291,6 @@ gameArea.addEventListener("touchstart", handleClick, { passive: false });
 function handleClick(e) {
   e.preventDefault();
 
-  // Klik saat fase WAIT → TOO_EARLY
   if (!isGameActive && gameArea.classList.contains("state-wait")) {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: "TOO_EARLY", username: myUsername }));
@@ -288,7 +300,6 @@ function handleClick(e) {
     return;
   }
 
-  // Klik saat fase GO → kirim waktu reaksi
   if (isGameActive) {
     const reactionTime = performance.now() - startTime;
     isGameActive = false;
@@ -304,7 +315,8 @@ function handleClick(e) {
         }),
       );
     } else {
-      // ── Mode Offline ──────────────────────────────────────────────────
+ 
+      myLastReactionTime = reactionTime;
       reactionHistory.push(reactionTime);
       showResult(myUsername, reactionTime.toFixed(0));
 
@@ -336,8 +348,6 @@ function handleClick(e) {
   }
 }
 
-// ─── Mode Solo (Offline Simulation) ─────────────────────────────────────────
-
 const testBtn = document.createElement("button");
 testBtn.innerText = "Mode Solo";
 testBtn.style.cssText = `
@@ -363,7 +373,7 @@ testBtn.addEventListener("click", () => {
 function startSimulationRound() {
   setWaitState();
   const delay = Math.random() * 3000 + 2000;
-  setTimeout(() => {
+  simulationTimeout = setTimeout(() => { // Simpan ke variabel agar bisa di-cancel
     setGoState();
     startTime = performance.now();
   }, delay);

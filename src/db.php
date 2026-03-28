@@ -1,18 +1,26 @@
 <?php
-// src/db.php
 
 function getDB(): ?PDO {
     static $pdo = null;
-    if ($pdo !== null) return $pdo;
+    
+    if ($pdo !== null) {
+        try {
+            $pdo->query("SELECT 1"); 
+        } catch (\PDOException $e) {
+           
+            echo "[DB]     Koneksi terputus (Idle), mencoba reconnect...\n";
+            $pdo = null; 
+        }
+    }
 
-    // Railway MySQL env vars — cek semua kemungkinan nama
+    if ($pdo !== null) return $pdo;
+    
     $host = getenv('MYSQLHOST')     ?: getenv('MYSQL_HOST')     ?: 'localhost';
     $port = getenv('MYSQLPORT')     ?: getenv('MYSQL_PORT')     ?: '3306';
     $db   = getenv('MYSQLDATABASE') ?: getenv('MYSQL_DATABASE') ?: getenv('MYSQL_DB') ?: 'railway';
     $user = getenv('MYSQLUSER')     ?: getenv('MYSQL_USER')     ?: 'root';
     $pass = getenv('MYSQLPASSWORD') ?: getenv('MYSQL_PASSWORD') ?: '';
 
-    // Debug: tampilkan env yang dipakai (tanpa password)
     echo "[DB]     Mencoba konek: host={$host} port={$port} db={$db} user={$user}\n";
 
     $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";

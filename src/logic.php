@@ -7,15 +7,12 @@ use Ratchet\ConnectionInterface;
 
 class Logic implements MessageComponentInterface {
 
-    // =========================================================
-    //  KONSTANTA GAME
-    // =========================================================
     const MAX_PLAYERS    = 2;
     const MAX_ROUNDS     = 5;
     const DELAY_MIN_MS   = 2000;
     const DELAY_MAX_MS   = 5000;
     const PENALTY_POINTS = 50;
-    const ANTI_CHEAT_MS  = 500;  // toleransi selisih waktu client vs server
+    const ANTI_CHEAT_MS  = 500;  // toleransi selisih waktu client dengan server
 
     // =========================================================
     //  STATE SERVER

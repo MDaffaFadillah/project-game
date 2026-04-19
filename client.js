@@ -12,13 +12,12 @@ let AppState = {
     currentScore: 0,
     combo: 0,
     roundResults: [],
-    gameIntervals: [],
-    isHost: false
+    gameIntervals: []
 };
 
 const els = {};
 
-// --- SISTEM XP & LEVEL (Hanya untuk Non-Guest) ---
+// --- SISTEM XP & LEVEL ---
 const XP_REWARDS = { WIN: 500, LOSE: 100 };
 const LEVEL_TABLE = [
     [1, 0], [2, 200], [3, 600], [4, 1100], [5, 1700],
@@ -42,8 +41,7 @@ function getLevelData(totalXP) {
     for (let i = 0; i < LEVEL_TABLE.length; i++) {
         if (totalXP >= LEVEL_TABLE[i][1]) {
             currentLevel = LEVEL_TABLE[i][0]; currentLevelXP = LEVEL_TABLE[i][1];
-            if (i + 1 < LEVEL_TABLE.length) nextXP = LEVEL_TABLE[i+1][1];
-            else nextXP = LEVEL_TABLE[i][1];
+            nextXP = (i + 1 < LEVEL_TABLE.length) ? LEVEL_TABLE[i+1][1] : LEVEL_TABLE[i][1];
         } else break;
     }
     let progressXP = totalXP - currentLevelXP;
@@ -177,7 +175,6 @@ const Auth = {
     },
     loginGuest: () => {
         const randomId = Math.floor(Math.random() * 10000);
-        // Guest tidak punya level, xp, atau icon custom
         const guestUser = { username: `Guest_${randomId}`, type: 'guest', icon: 'fa-ghost' };
         AppState.user = guestUser; AppState.isGuest = true; AppState.isLoggedIn = true;
         saveCurrentUser(AppState.user); 
@@ -209,26 +206,19 @@ const UI = {
     updateProfileUI: () => {
         if (!AppState.user || !els.displayUser) return;
         els.displayUser.textContent = AppState.user.username;
-
-        // --- LOGIKA GUEST VS LOGIN ---
         if (AppState.isGuest) {
-            // Guest: Sembunyikan XP Bar, tampilkan teks biasa
             els.displayLvl.textContent = "Offline Mode";
-            els.displayLvl.style.color = "var(--accent-yellow)";
-            els.xpBarContainer.style.display = "none";
+            els.displayLvl.style.color = "#888";
+            if(els.xpBarContainer) els.xpBarContainer.style.display = "none";
         } else {
-            // Login: Tampilkan Level & XP Bar
-            els.xpBarContainer.style.display = "block";
-            
+            if(els.xpBarContainer) els.xpBarContainer.style.display = "block";
             const totalXP = AppState.user.totalXP || 0;
             const data = getLevelData(totalXP);
-            
             let lvlHtml = `Lvl ${data.level} <span>${data.progressXP.toFixed(0)} / ${data.neededXP.toFixed(0)} XP</span>`;
             if (data.level >= 20) lvlHtml = `Lvl ${data.level} <span>MAX</span>`;
             els.displayLvl.innerHTML = lvlHtml;
             els.xpFill.style.width = `${data.progressPercent}%`;
         }
-
         els.avatar.innerHTML = `<i class="fas ${AppState.user.icon}"></i>`;
     },
     
@@ -249,16 +239,12 @@ const UI = {
             els.profileNextUnlock.textContent = "Login untuk save progress.";
             return;
         }
-
         const totalXP = AppState.user.totalXP || 0;
         const currentData = getLevelData(totalXP);
         els.profileLevel.textContent = `Level ${currentData.level} (${currentData.currentXP} XP)`;
-
-        // Find next unlock
         const nextUnlock = Object.entries(ICON_UNLOCKS).find(([lvl, data]) => lvl > currentData.level);
         if(nextUnlock) els.profileNextUnlock.textContent = `Next Unlock: ${nextUnlock[1].name} at Lv.${nextUnlock[0]}`;
         else els.profileNextUnlock.textContent = "All Icons Unlocked!";
-
         els.iconGrid.innerHTML = '';
         const sortedUnlocks = Object.entries(ICON_UNLOCKS).sort((a, b) => a[0] - b[0]);
         sortedUnlocks.forEach(([lvl, data]) => {
@@ -284,17 +270,32 @@ const UI = {
         });
     },
     showResultModal: () => {
-        if(!els.resModal) return;
-        els.resMode.textContent = "Match Finished";
-        els.resScore.textContent = AppState.currentScore;
+        // Cek elemen ada atau tidak
+        if(!els.resModal) { console.error("Elemen #result-modal tidak ditemukan di HTML!"); return; }
+        
+        // Update Konten
+        if(els.resMode) els.resMode.textContent = "Match Finished";
+        if(els.resScore) els.resScore.textContent = AppState.currentScore;
+        
         const avg = AppState.reactionTimes.length ? (AppState.reactionTimes.reduce((a,b)=>a+b,0) / AppState.reactionTimes.length).toFixed(0) : '---';
         const best = AppState.reactionTimes.length ? Math.min(...AppState.reactionTimes).toFixed(0) : '---';
-        els.resAvg.textContent = avg;
-        els.resBest.textContent = best;
+        
+        if(els.resAvg) els.resAvg.textContent = avg;
+        if(els.resBest) els.resBest.textContent = best;
+        
+        // FIX: Paksa Modal Muncul
         els.resModal.classList.add('show');
+        els.resModal.style.display = 'flex'; // Paksa display flex
+        els.resModal.style.opacity = '1';
+        els.resModal.style.zIndex = '9999';
+        
+        console.log("Result Modal dipaksa muncul.");
     },
     retryGame: () => {
-        if(els.resModal) els.resModal.classList.remove('show');
+        if(els.resModal) {
+            els.resModal.classList.remove('show');
+            els.resModal.style.display = 'none';
+        }
         Game.startMatch();
     }
 };
@@ -472,54 +473,63 @@ const Game = {
         els.gameArea.className = 'state-wait';
         els.msgMain.textContent = "FINISH";
         
-        // --- LOGIKA GUEST ---
-        if(AppState.isGuest) {
-            els.resXP.textContent = "+0 XP";
-            els.resXP.style.color = "#666";
-        } else {
-            // LOGIKA LOGIN
-            const oldLevel = getLevelData(AppState.user.totalXP || 0).level;
-            
-            AppState.user.gamesPlayed++;
-            if(AppState.reactionTimes.length > 0) {
-                const avg = AppState.reactionTimes.reduce((a,b)=>a+b,0) / AppState.reactionTimes.length;
-                if(!AppState.user.bestTime || avg < AppState.user.bestTime) AppState.user.bestTime = avg;
-            }
-            
-            // Hitung XP
-            let isWin = AppState.currentScore > 300;
-            let xpEarned = isWin ? XP_REWARDS.WIN : XP_REWARDS.LOSE;
-            AppState.user.totalXP = (AppState.user.totalXP || 0) + xpEarned;
-            
-            const newLevelData = getLevelData(AppState.user.totalXP);
-            AppState.user.level = newLevelData.level;
-
-            els.resXP.textContent = `+${xpEarned} XP`;
-            els.resXP.style.color = isWin ? "var(--accent-green)" : "var(--accent-yellow)";
-
-            if(newLevelData.level > oldLevel) {
-                els.msgSub.innerHTML = `LEVEL UP! Lv.${newLevelData.level}`;
-                els.msgSub.style.color = "var(--accent-yellow)";
-                els.msgSub.style.fontSize = "1.2rem";
-                UI.updateProfileUI();
-                UI.triggerLevelUpAnimation();
+        try {
+            if(AppState.isGuest) {
+                els.resXP.textContent = "+0 XP";
+                els.resXP.style.color = "#666";
             } else {
-                UI.updateProfileUI();
-            }
+                const oldLevel = getLevelData(AppState.user.totalXP || 0).level;
+                
+                AppState.user.gamesPlayed++;
+                if(AppState.reactionTimes.length > 0) {
+                    const avg = AppState.reactionTimes.reduce((a,b)=>a+b,0) / AppState.reactionTimes.length;
+                    if(!AppState.user.bestTime || avg < AppState.user.bestTime) AppState.user.bestTime = avg;
+                }
+                
+                let isWin = AppState.currentScore > 300;
+                let xpEarned = isWin ? XP_REWARDS.WIN : XP_REWARDS.LOSE;
+                AppState.user.totalXP = (AppState.user.totalXP || 0) + xpEarned;
+                
+                const newLevelData = getLevelData(AppState.user.totalXP);
+                AppState.user.level = newLevelData.level;
 
-            saveCurrentUser(AppState.user);
-            updateUserInDB(AppState.user);
-            Storage.saveSession([{
-                username: AppState.user.username, score: AppState.currentScore,
-                avgTime: AppState.reactionTimes.length ? (AppState.reactionTimes.reduce((a,b)=>a+b,0)/AppState.reactionTimes.length).toFixed(0) : '---',
-                bestTime: AppState.reactionTimes.length ? Math.min(...AppState.reactionTimes).toFixed(0) : '---',
-                xp: xpEarned
-            }], 'Ranked');
+                els.resXP.textContent = `+${xpEarned} XP`;
+                els.resXP.style.color = isWin ? "var(--accent-green)" : "#888"; 
+
+                if(newLevelData.level > oldLevel) {
+                    els.msgSub.innerHTML = `LEVEL UP! Lv.${newLevelData.level}`;
+                    els.msgSub.style.color = "var(--accent-yellow)";
+                    els.msgSub.style.fontSize = "1.2rem";
+                    UI.updateProfileUI();
+                    UI.triggerLevelUpAnimation();
+                } else {
+                    UI.updateProfileUI();
+                }
+
+                saveCurrentUser(AppState.user);
+                updateUserInDB(AppState.user);
+                Storage.saveSession([{
+                    username: AppState.user.username, score: AppState.currentScore,
+                    avgTime: AppState.reactionTimes.length ? (AppState.reactionTimes.reduce((a,b)=>a+b,0)/AppState.reactionTimes.length).toFixed(0) : '---',
+                    bestTime: AppState.reactionTimes.length ? Math.min(...AppState.reactionTimes).toFixed(0) : '---',
+                    xp: xpEarned
+                }], 'Ranked');
+            }
+            
+            // PENTING: Panggil showResultModal di akhir
+            UI.showResultModal();
+
+        } catch(e) {
+            console.error("Error di endGame:", e);
+            // Fallback jika error, tetap tampilkan modal
+            UI.showResultModal();
         }
-        UI.showResultModal();
     },
     backToLobby: () => {
-        if(els.resModal) els.resModal.classList.remove('show');
+        if(els.resModal) {
+            els.resModal.classList.remove('show');
+            els.resModal.style.display = 'none';
+        }
         showScreen('lobby');
         UI.updateProfileUI(); 
         UI.initIconPicker();
@@ -578,7 +588,7 @@ const Dashboard = {
                 <div class="history-item">
                     <div>
                         <div style="font-size:0.8rem; color:rgba(255,255,255,0.5);">${new Date(s.timestamp).toLocaleString('id-ID')}</div>
-                        <div style="margin-top:5px; font-size:0.9rem;">XP Gained: <span style="color:var(--accent-green)">${s.players[0].xp || 0} XP</span></div>
+                        <div style="margin-top:5px; font-size:0.9rem;">XP: <span style="color:var(--accent-green)">${s.players[0].xp || 0}</span></div>
                     </div>
                     <div class="history-stats">
                         <div>Skor: <span>${winner.score}</span></div>
@@ -593,8 +603,7 @@ const Dashboard = {
                 data: {
                     labels: sessions.slice(0,10).reverse().map((_,i)=>i+1),
                     datasets: [{
-                        label: 'Avg Time (ms)',
-                        data: sessions.slice(0,10).reverse().map(s => s.players[0]?.avgTime || 0),
+                        label: 'Avg Time (ms)', data: sessions.slice(0,10).reverse().map(s => s.players[0]?.avgTime || 0),
                         borderColor: '#00f5ff', tension: 0.4
                     }]
                 },

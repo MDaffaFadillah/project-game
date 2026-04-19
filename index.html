@@ -3,294 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reaction Duel — Cloud Computing</title>
+    <title>Reaction Duel — Matchmaking</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --bg-dark:       #0a0a0f;
-            --bg-card:       rgba(15, 15, 25, 0.85);
+            --bg-card:       rgba(15, 15, 25, 0.95);
             --accent-cyan:   #00f5ff;
             --accent-pink:   #ff2d75;
-            --accent-orange: #ff8c00;
             --accent-green:  #00ff88;
             --accent-yellow: #ffe600;
+            --accent-purple: #bc13fe;
         }
-
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--bg-dark);
-            color: #fff;
-            overflow: hidden;
-            min-height: 100vh;
-        }
-
-        .video-container {
-            position: fixed; inset: 0; z-index: 0; overflow: hidden;
-        }
-        #bg-video {
-            width: 100%; height: 100%;
-            object-fit: cover; opacity: 0.35; filter: saturate(1.2);
-        }
-        .video-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(135deg,
-                rgba(10,10,15,.75) 0%,
-                rgba(20,10,30,.65) 50%,
-                rgba(10,10,15,.85) 100%);
-            pointer-events: none;
-        }
-
-        .screen {
-            position: relative; z-index: 10;
-            width: 100vw; height: 100vh;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            padding: 20px;
-        }
-        .hidden { display: none !important; }
-
-        #lobby-screen { gap: 24px; }
-
-        .game-title {
-            font-family: 'Orbitron', monospace;
-            font-size: clamp(2rem, 6vw, 4rem);
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            color: #fff;
-            text-shadow: 0 0 10px var(--accent-cyan), 0 0 30px var(--accent-cyan);
-            animation: titlePulse 3s ease-in-out infinite;
-        }
-        @keyframes titlePulse {
-            0%,100% { text-shadow: 0 0 10px var(--accent-cyan), 0 0 25px var(--accent-cyan); }
-            50%      { text-shadow: 0 0 20px var(--accent-cyan), 0 0 50px var(--accent-cyan), 0 0 70px var(--accent-cyan); }
-        }
-
-        .subtitle {
-            font-size: 1rem;
-            color: rgba(255,255,255,.55);
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-top: -10px;
-        }
-
-        .input-group {
-            display: flex; flex-direction: column;
-            gap: 12px; align-items: center;
-        }
-
-        #username-input {
-            width: 280px; max-width: 88vw;
-            padding: 14px 20px;
-            font-size: 1.1rem;
-            font-family: 'Rajdhani', sans-serif; font-weight: 500;
-            text-align: center;
-            background: rgba(255,255,255,.05);
-            border: 2px solid rgba(0,245,255,.3);
-            border-radius: 10px; color: #fff; outline: none;
-            transition: all .3s;
-        }
-        #username-input::placeholder { color: rgba(255,255,255,.4); }
-        #username-input:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 20px rgba(0,245,255,.25);
-            background: rgba(0,245,255,.04);
-        }
-
-        #join-btn {
-            padding: 14px 48px;
-            font-size: 1.1rem;
-            font-family: 'Orbitron', monospace; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 2px;
-            background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
-            border: none; border-radius: 10px; color: #fff;
-            cursor: pointer; transition: all .3s;
-            box-shadow: 0 4px 24px rgba(255,45,117,.4);
-        }
-        #join-btn:hover  { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 32px rgba(255,45,117,.6); }
-        #join-btn:active { transform: translateY(0) scale(.98); }
-        #join-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-
-        #player-list {
-            background: var(--bg-card);
-            border: 1px solid rgba(0,245,255,.2);
-            border-radius: 14px; padding: 20px 28px;
-            min-width: 260px; backdrop-filter: blur(10px);
-        }
-        #player-list h3 {
-            font-family: 'Orbitron', monospace;
-            font-size: .8rem; letter-spacing: 3px;
-            color: var(--accent-cyan); margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-        #players { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-        #players li {
-            padding: 8px 12px;
-            background: rgba(0,245,255,.08);
-            border-radius: 7px; border-left: 3px solid var(--accent-cyan);
-            font-weight: 500; font-size: .95rem;
-            display: flex; align-items: center; gap: 8px;
-        }
-        #players li::before { content: '▸'; color: var(--accent-cyan); }
-        #players li.ready { border-left-color: var(--accent-green); background: rgba(0,255,136,.08); }
-        #players li.ready::before { content: '✓'; color: var(--accent-green); }
-
-        #status-text {
-            font-size: .9rem; color: rgba(255,255,255,.5);
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-        .dashboard-link {
-            position: fixed; bottom: 20px; right: 20px; z-index: 999;
-            padding: 10px 18px;
-            background: rgba(255,230,0,.15);
-            border: 1px solid var(--accent-yellow);
-            border-radius: 8px; color: var(--accent-yellow);
-            font-family: 'Orbitron', monospace; font-size: .75rem;
-            text-decoration: none; letter-spacing: 1px;
-            transition: all .3s;
-        }
-        .dashboard-link:hover { background: rgba(255,230,0,.25); }
-
-        #game-screen { padding: 0; }
-
-        #back-btn {
-            position: absolute; top: 20px; left: 20px; z-index: 100;
-            display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px; color: rgba(255, 255, 255, 0.7);
-            font-family: 'Rajdhani', sans-serif; font-size: 1rem;
-            cursor: pointer; transition: all .3s;
-            backdrop-filter: blur(5px);
-        }
-        #back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
-
-        #game-area {
-            position: relative; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            cursor: pointer; overflow: hidden;
-            user-select: none;
-        }
-
-        #color-overlay {
-            position: absolute; inset: 0; z-index: 1;
-            transition: background-color .15s ease-out;
-        }
- 
-        .state-wait  #color-overlay { 
-            background: radial-gradient(ellipse at center, rgba(160, 30, 30, 0.92) 0%, rgba(80, 15, 15, 0.95) 60%, rgba(40, 5, 5, 0.98) 100%); 
-        }
- 
-        .state-go    #color-overlay { 
-            background: radial-gradient(ellipse at center, rgba(220, 180, 0, 0.92) 0%, rgba(180, 140, 0, 0.95) 60%, rgba(100, 80, 0, 0.98) 100%); 
-            animation: goPulse .3s ease-out; 
-        }
-  
-        .state-result #color-overlay { 
-            background: radial-gradient(ellipse at center, rgba(20, 160, 80, 0.92) 0%, rgba(10, 100, 50, 0.95) 60%, rgba(5, 50, 25, 0.98) 100%); 
-        }
- 
-        .state-early #color-overlay { 
-            background: radial-gradient(ellipse at center, rgba(200, 100, 0, 0.92) 0%, rgba(150, 70, 0, 0.95) 60%, rgba(80, 40, 0, 0.98) 100%); 
-        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); color: #fff; overflow: hidden; min-height: 100vh; }
         
-        @keyframes goPulse { 0%{transform:scale(1)} 50%{transform:scale(1.015)} 100%{transform:scale(1)} }
+        
+        .video-container { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        #bg-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+        .video-overlay { position: absolute; inset: 0; background: rgba(10,10,15,0.7); }
+        .bg-grid { position: fixed; inset: 0; z-index: 1; background-image: radial-gradient(rgba(0,245,255,.07) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; }
+        .vignette { position: fixed; inset: 0; z-index: 2; background: radial-gradient(circle at center, transparent 0%, #000 90%); pointer-events: none; }
 
-        #game-message {
-            font-family: 'Orbitron', monospace;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 4px; 
-            z-index: 10;
-            pointer-events: none;
-            text-align: center;
-            white-space: pre-line;
-            line-height: 1.3;
-            text-shadow: 0 0 40px rgba(0,0,0,.7);
+        .screen { position: relative; z-index: 10; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .screen.active { display: flex; }
+        
+       
+        #login-screen { gap: 20px; }
+        .login-box { background: var(--bg-card); border: 1px solid var(--accent-cyan); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; backdrop-filter: blur(10px); text-align: center; box-shadow: 0 0 30px rgba(0, 245, 255, 0.1); }
+        .login-logo { font-family: 'Orbitron'; font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(to right, var(--accent-cyan), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; display: block; }
+        .input-field { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-family: inherit; font-size: 1rem; outline: none; transition: 0.3s; text-align: left; }
+        .input-field:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(0,245,255,0.2); }
+        
+        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green)); color: #000; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; font-size: 1rem; }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,245,255,0.4); }
+        .btn-guest { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+        .btn-guest:hover { background: rgba(255,255,255,0.2); }
+        .btn-secondary { background: transparent; border: 1px solid var(--accent-pink); color: var(--accent-pink); }
+        .btn-secondary:hover { background: rgba(255,45,117,0.1); }
+        .btn-ready { width: 100%; padding: 20px; background: linear-gradient(135deg, var(--accent-yellow), #ff9900); color: #000; font-size: 1.5rem; border: none; border-radius: 12px; font-family: 'Orbitron'; font-weight: 900; cursor: pointer; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .divider { display: flex; align-items: center; color: rgba(255,255,255,0.3); font-size: 0.8rem; margin: 15px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+        .divider span { padding: 0 10px; }
+        .error-msg { color: var(--accent-pink); font-size: 0.85rem; margin-bottom: 15px; min-height: 20px; }
+
+       
+        #lobby-screen { justify-content: flex-start; padding-top: 60px; gap: 20px; }
+        .user-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 30px; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; z-index: 20; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .user-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 0 15px rgba(255,45,117,0.3); }
+        
+        .lobby-content { display: flex; gap: 20px; width: 100%; max-width: 1100px; height: 75vh; margin-top: 20px; }
+        .lobby-left { flex: 2; display: flex; flex-direction: column; gap: 15px; }
+        .lobby-right { flex: 1; background: var(--bg-card); border-radius: 12px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.1); height: 100%; }
+        
+        .how-to-play-card { background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(0,255,136,0.1)); border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 20px; }
+        .how-to-play-title { font-family: 'Orbitron'; color: var(--accent-cyan); margin-bottom: 15px; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+        .tutorial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .tut-item { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .tut-icon { font-size: 2rem; margin-bottom: 10px; }
+        .tut-text { font-size: 0.8rem; color: #ccc; }
+
+        .panel { background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); flex: 1; overflow-y: auto; }
+        .panel-title { font-family: 'Orbitron'; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .lobby-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 20px 0; }
+        #start-btn { width: 80%; padding: 20px; font-size: 1.2rem; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); }
+        
+        .chat-header { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); font-family: 'Orbitron'; font-size: 0.9rem; color: var(--accent-cyan); background: rgba(0,0,0,0.2); }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; }
+        .chat-msg strong { color: var(--accent-pink); }
+        .chat-msg span.time { color: rgba(255,255,255,0.3); font-size: 0.7rem; margin-left: 5px; }
+        .chat-input-area { padding: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .chat-input-area input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; color: #fff; outline: none; font-family: inherit; }
+
+        #game-screen { position: relative; }
+        #game-ui-top { position: absolute; top: 20px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; z-index: 20; pointer-events: none; }
+        #game-ui-top button { pointer-events: auto; }
+        
+        #combo-display { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); font-family: 'Orbitron'; font-size: 1.5rem; color: var(--accent-yellow); text-shadow: 0 0 10px rgba(255,230,0,0.5); opacity: 0; transition: opacity 0.3s; z-index: 15; pointer-events: none; }
+        #combo-display.show { opacity: 1; transform: translateX(-50%) scale(1.2); }
+
+        #game-area { position: relative; width: 100%; height: 100%; z-index: 5; }
+
+        .trash-item { position: absolute; width: 90px; height: 90px; background: rgba(20,20,30, 0.9); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); transition: transform 0.1s; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 20; pointer-events: auto; }
+        
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        .trash-item.good { border-color: var(--accent-green); }
+        .trash-item.bad { border-color: var(--accent-red); }
+        .trash-item.bonus { border-color: var(--accent-yellow); box-shadow: 0 0 20px rgba(255,230,0,0.4); }
+
+        .trash-item.moving {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), drift 3s ease-in-out infinite alternate;
+        }
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(var(--dx, 10px), var(--dy, -5px)) scale(1.02); }
+            66% { transform: translate(calc(var(--dx, 10px) * -1), calc(var(--dy, -5px) * 0.5)) scale(0.98); }
+            100% { transform: translate(0, 0) scale(1); }
         }
 
-        .state-wait  #game-message,
-        .state-early #game-message {
-            font-size: clamp(2rem, 7vw, 4.5rem); 
-        }
-        .state-go #game-message {
-            font-size: clamp(2.5rem, 9vw, 6rem); 
-            color: #1a1a1a;
-            text-shadow: 0 2px 10px rgba(255, 255, 200, 0.3);
-            animation: msgFlash .15s ease-out;
-        }
-        .state-result #game-message {
-            font-size: clamp(1.4rem, 4vw, 2.8rem); 
-            color: #fff;
-        }
-        @keyframes msgFlash { 0%{transform:scale(1.25);opacity:0} 100%{transform:scale(1);opacity:1} }
+        .trash-timer { position: absolute; bottom: 5px; left: 5px; right: 5px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+        .timer-fill { height: 100%; width: 100%; background: currentColor; transform-origin: left; }
 
-        #round-indicator {
-            position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 20;
-            font-family: 'Orbitron', monospace;
-            font-size: 1rem; color: var(--accent-cyan); letter-spacing: 3px;
-            background: rgba(0,0,0,.4); padding: 6px 16px; border-radius: 20px;
-            border: 1px solid rgba(0,245,255,.2);
-        }
+        .icon-good { color: var(--accent-green); font-size: 3rem; text-shadow: 0 0 15px rgba(0,255,136,0.5); }
+        .icon-bad { color: var(--accent-red); font-size: 3rem; text-shadow: 0 0 15px rgba(255,51,51,0.5); }
+        .icon-bonus { color: var(--accent-yellow); font-size: 2.5rem; text-shadow: 0 0 15px rgba(255,230,0,0.5); }
 
-        #stats-panel {
-            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 20; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
-        }
-        .stat-card {
-            background: rgba(0,0,0,.65);
-            border: 1px solid rgba(0,245,255,.25);
-            border-radius: 10px; padding: 12px 20px;
-            min-width: 130px; text-align: center;
-            backdrop-filter: blur(10px);
-        }
-        .stat-label {
-            font-size: .7rem; color: var(--accent-cyan);
-            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;
-        }
-        .stat-value {
-            font-family: 'Orbitron', monospace;
-            font-size: 1.5rem; font-weight: 700; color: #fff;
-        }
-        .stat-unit { font-size: .8rem; color: rgba(255,255,255,.55); }
+        .center-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Orbitron'; text-align: center; z-index: 15; text-shadow: 0 0 30px rgba(0,0,0,0.8); pointer-events: none; white-space: pre-wrap; line-height: 1; color: #fff; width: 80%; }
+        .msg-main { display: block; font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 900; }
+        .msg-sub { display: block; font-size: clamp(1rem, 3vw, 1.5rem); color: #ccc; margin-top: 10px; }
+        .unit-ms { font-size: 0.4em; color: var(--accent-cyan); margin-left: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        
+        .ready-room { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 500px; margin-top: 100px; z-index: 20; }
+        .ready-room.active { display: flex; }
+        .match-vs { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 40px; }
+        .player-card { text-align: center; background: rgba(0,0,0,0.6); padding: 20px; border-radius: 12px; border: 1px solid var(--accent-cyan); width: 45%; }
+        .player-card.is-me { border-color: var(--accent-green); }
+        .status-dot { width: 20px; height: 20px; border-radius: 50%; background: #555; margin: 10px auto; transition: 0.3s; }
+        .status-dot.ready { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        .status-dot.waiting { background: var(--accent-yellow); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        #score-panel {
-            position: absolute; top: 24px; right: 20px;
-            z-index: 20; display: flex; flex-direction: column; gap: 6px;
-        }
-        .score-item {
-            background: rgba(0,0,0,.55);
-            border: 1px solid rgba(255,255,255,.12);
-            border-radius: 8px; padding: 6px 14px;
-            font-size: .85rem; display: flex; justify-content: space-between; gap: 14px;
-        }
-        .score-name { color: rgba(255,255,255,.7); }
-        .score-pts  { font-family: 'Orbitron', monospace; color: var(--accent-cyan); font-size: .85rem; }
+        .color-overlay { position: absolute; inset: 0; z-index: 1; background: transparent; transition: background 0.2s; }
+        .state-wait .color-overlay { background: rgba(5,5,10, 0.85); }
+        .state-go .color-overlay { background: transparent; }
 
-        @media (max-width: 600px) {
-            .game-title { letter-spacing: 3px; }
-            #username-input { width: 90vw; }
-            .stat-card { min-width: 100px; padding: 10px 12px; }
-            .stat-value { font-size: 1.2rem; }
-            #stats-panel { bottom: 12px; gap: 8px; }
-            .state-result #game-message { font-size: clamp(1.2rem, 5vw, 2rem); }
-        }
+        #stats-panel { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 20; width: 90%; justify-content: center; }
+        .stat-box { background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 10px; text-align: center; min-width: 80px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        .stat-val { font-family: 'Orbitron'; font-size: 1.1rem; color: #fff; }
+        .stat-lbl { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; }
 
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: .01ms !important;
-            }
-        }
+       
+        #result-modal, #profile-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; }
+        #result-modal.show { display: flex; opacity: 1; }
+        .result-box { background: var(--bg-card); border: 2px solid var(--accent-cyan); padding: 40px; border-radius: 20px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 0 50px rgba(0,245,255,0.2); animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .result-title { font-family: 'Orbitron'; font-size: 2.5rem; color: var(--accent-green); margin-bottom: 20px; }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .result-row span:last-child { font-family: 'Orbitron'; color: var(--accent-cyan); }
+        .result-actions { margin-top: 30px; display: flex; gap: 10px; flex-direction: column; }
+        .modal-content { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 350px; text-align: center; border: 1px solid var(--accent-cyan); }
+        .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .icon-option { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .icon-option:hover { background: rgba(0,245,255,0.2); }
     </style>
 </head>
 <body>
@@ -301,54 +166,168 @@
     </video>
     <div class="video-overlay"></div>
 </div>
+<div class="bg-grid"></div>
+<div class="vignette"></div>
+
+
+<div id="login-screen" class="screen active">
+    <div class="login-box">
+        <h1 class="login-logo">REACTION DUEL</h1>
+        <p class="login-sub" style="margin-bottom: 30px;">Enter Arena</p>
+        
+        <div id="login-error" class="error-msg"></div>
+
+        <div class="input-group">
+            <span class="input-label">USERNAME OR EMAIL</span>
+            <input type="text" id="login-id" class="input-field" placeholder="e.g. player123 or mail@example.com">
+        </div>
+        <div class="input-group">
+            <span class="input-label">PASSWORD</span>
+            <input type="password" id="login-pass" class="input-field" placeholder="Password">
+        </div>
+
+        <button id="btn-login" class="btn-main">LOG IN</button>
+        <button id="btn-register" class="btn-main btn-secondary">CREATE NEW ACCOUNT</button>
+
+        <div class="divider"><span>OR</span></div>
+
+        <button id="btn-guest" class="btn-main btn-guest">PLAY AS GUEST</button>
+    </div>
+</div>
+
 
 <div id="lobby-screen" class="screen">
-    <h1 class="game-title">Reaction Duel</h1>
-    <p class="subtitle">Test Your Reflexes</p>
-
-    <div class="input-group">
-        <input type="text" id="username-input" placeholder="Masukkan Nama..." maxlength="20" autocomplete="off">
-        <button id="join-btn">Join Room</button>
+    <div class="user-bar">
+        <div class="user-profile" onclick="UI.toggleProfile()">
+            <div class="user-avatar" id="avatar-display"><i class="fas fa-user"></i></div>
+            <div class="user-info" style="text-align:left">
+                <div class="user-name" id="display-username" style="font-weight:700">Guest</div>
+                <div class="user-level" id="display-level" style="font-size:0.8rem; color:var(--accent-cyan)">Unregistered</div>
+            </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-main" style="padding:6px 12px; font-size:0.7rem; width:auto; background:var(--accent-purple);" onclick="window.location.href='dashboard.html'">DASHBOARD</button>
+            <button class="btn-main" style="padding:6px 12px; font-size:0.7rem; width:auto; background:rgba(255,255,255,0.1);" onclick="Auth.logout()">LOGOUT</button>
+        </div>
     </div>
 
-    <div id="player-list">
-        <h3>Players in Room</h3>
-        <ul id="players"></ul>
-    </div>
+    <div class="lobby-content">
+        <div class="lobby-left">
+           
+            <div class="how-to-play-card">
+                <div class="how-to-play-title"><i class="fas fa-gamepad"></i> CARA MAIN (HOW TO PLAY)</div>
+                <div class="tutorial-grid">
+                    <div class="tut-item">
+                        <div class="tut-icon" style="color:var(--accent-green)"><i class="fas fa-recycle"></i></div>
+                        <div class="tut-text"><strong>KLik HIJAU</strong><br>Poin Normal</div>
+                    </div>
+                    <div class="tut-item">
+                        <div class="tut-icon" style="color:var(--accent-yellow)"><i class="fas fa-gem"></i></div>
+                        <div class="tut-text"><strong>BONUS KUNING</strong><br>Hilang Cepat (+Poin)</div>
+                    </div>
+                    <div class="tut-item">
+                        <div class="tut-icon" style="color:var(--accent-red)"><i class="fas fa-bomb"></i></div>
+                        <div class="tut-text"><strong>HINDARI MERAH</strong><br>Jangan Diklik!</div>
+                    </div>
+                </div>
+                <p style="margin-top:10px; font-size:0.8rem; color:#aaa; text-align:center;">Jangan biarkan item hijau melewati timer!</p>
+            </div>
 
-    <p id="status-text">Menunggu pemain lain...</p>
+            <div class="panel">
+                <div class="panel-title">PLAYERS ONLINE <span style="font-size:0.7rem; color:var(--accent-green)" id="server-status">CONNECTING...</span></div>
+                <div id="player-list-container"></div>
+            </div>
+            <div class="lobby-actions">
+                <button id="start-btn" class="btn-main active" onclick="Game.startMatch()">FIND MATCH</button>
+                <p id="lobby-status" style="text-align:center; color:#666; font-size:0.9rem;">Click to find an opponent!</p>
+            </div>
+        </div>
+        <div class="lobby-right">
+            <div class="chat-header">GLOBAL CHAT</div>
+            <div class="chat-messages" id="chat-box">
+                <div class="chat-msg"><span style="color:var(--accent-yellow)">System:</span> Welcome! Read rules before playing.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ketik pesan..." onkeypress="Chat.handleKey(event)">
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="game-screen" class="screen hidden">
 
-    <button id="back-btn">← Back to Lobby</button>
+<div id="game-screen" class="screen">
+    <div id="game-ui-top">
+        <button onclick="Game.backToLobby()" style="background:rgba(255,45,117,0.8); border:none; color:white; padding:8px 15px; border-radius:6px; cursor:pointer; font-family:Orbitron; font-size:0.8rem; box-shadow:0 4px 10px rgba(0,0,0,0.3);">← EXIT</button>
+        <div id="round-indicator">MATCH 1 / 5</div>
+        <div id="mode-indicator" style="font-size:0.8rem; color:#aaa;">MULTIPLAYER</div>
+    </div>
 
-    <div id="round-indicator">RONDE 1 / 5</div>
+   
+    <div id="ready-room" class="ready-room">
+        <div class="msg-main" style="font-size:2rem; color:var(--accent-cyan); margin-bottom:20px;">MATCH FOUND!</div>
+        
+        <div class="match-vs">
+            <div class="player-card is-me">
+                <h3>YOU</h3>
+                <div class="user-avatar" style="margin:10px auto; width:60px; height:60px;"><i class="fas fa-user"></i></div>
+                <div id="ready-status-me" class="status-dot"></div>
+                <div id="ready-text-me" style="font-size:0.8rem; margin-top:5px;">NOT READY</div>
+            </div>
+            
+            <div style="font-size:2rem; font-weight:900; color:#fff;">VS</div>
+            
+            <div class="player-card">
+                <h3 id="opponent-name">Opponent</h3>
+                <div class="user-avatar" style="margin:10px auto; width:60px; height:60px; background:#555;"><i class="fas fa-robot"></i></div>
+                <div id="ready-status-opp" class="status-dot"></div>
+                <div id="ready-text-opp" style="font-size:0.8rem; margin-top:5px;">WAITING...</div>
+            </div>
+        </div>
+
+        <button id="btn-ready-confirm" class="btn-ready" onclick="Game.confirmReady()">I AM READY</button>
+    </div>
+
+    <div id="combo-display">COMBO x<span id="combo-val">0</span></div>
 
     <div id="game-area" class="state-wait">
-        <div id="color-overlay"></div>
-        <h1 id="game-message">WAIT...</h1>
+        <div class="color-overlay"></div>
+        <div class="center-message">
+            <span class="msg-main" id="center-msg-main">SEARCHING</span>
+            <span class="msg-sub" id="center-msg-sub"></span>
+        </div>
+        <div id="trash-container"></div>
     </div>
 
-    <div id="score-panel"></div>
-
     <div id="stats-panel">
-        <div class="stat-card">
-            <div class="stat-label">Rata-rata</div>
-            <div class="stat-value"><span id="stat-avg">---</span> <span class="stat-unit">ms</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Konsistensi</div>
-            <div class="stat-value"><span id="stat-consistency">---</span> <span class="stat-unit">ms</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Terbaik</div>
-            <div class="stat-value"><span id="stat-best">---</span> <span class="stat-unit">ms</span></div>
+        <div class="stat-box"><div class="stat-val" id="stat-avg">---</div><div class="stat-lbl">Avg</div></div>
+        <div class="stat-box"><div class="stat-val" id="stat-best">---</div><div class="stat-lbl">Best</div></div>
+        <div class="stat-box"><div class="stat-val" id="stat-score" style="color:var(--accent-yellow)">0</div><div class="stat-lbl">Score</div></div>
+    </div>
+</div>
+
+
+<div id="result-modal">
+    <div class="result-box">
+        <div class="result-title">MATCH ENDED</div>
+        <div class="result-row"><span>Result</span><span id="res-mode">Victory</span></div>
+        <div class="result-row"><span>Final Score</span><span id="res-score" style="color:var(--accent-yellow); font-size:1.5rem;">0</span></div>
+        <div class="result-row"><span>Avg Reaction</span><span id="res-avg">---</span></div>
+        <div class="result-row"><span>Best Time</span><span id="res-best">---</span></div>
+        <div class="result-actions">
+            <button class="btn-main" onclick="UI.retryGame()">PLAY AGAIN</button>
+            <button class="btn-main btn-secondary" onclick="Game.backToLobby()">BACK TO LOBBY</button>
         </div>
     </div>
 </div>
 
-<a href="dashboard.html" class="dashboard-link">📊 Dashboard</a>
+
+<div id="profile-modal" onclick="UI.toggleProfile()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 style="font-family:'Orbitron'; margin-bottom:20px;">MY PROFILE</h2>
+        <div id="icon-grid"></div>
+        <button class="btn-main btn-secondary" onclick="UI.toggleProfile()">Close</button>
+    </div>
+</div>
 
 <script src="client.js"></script>
 </body>

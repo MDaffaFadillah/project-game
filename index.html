@@ -20,7 +20,6 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); color: #fff; overflow: hidden; min-height: 100vh; }
         
-        
         .video-container { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
         #bg-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
         .video-overlay { position: absolute; inset: 0; background: rgba(10,10,15,0.7); }
@@ -30,7 +29,6 @@
         .screen { position: relative; z-index: 10; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .screen.active { display: flex; }
         
-       
         #login-screen { gap: 20px; }
         .login-box { background: var(--bg-card); border: 1px solid var(--accent-cyan); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; backdrop-filter: blur(10px); text-align: center; box-shadow: 0 0 30px rgba(0, 245, 255, 0.1); }
         .login-logo { font-family: 'Orbitron'; font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(to right, var(--accent-cyan), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -43,9 +41,7 @@
         .btn-main { width: 100%; padding: 14px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green)); color: #000; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; font-size: 1rem; }
         .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,245,255,0.4); }
         .btn-guest { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; }
-        .btn-guest:hover { background: rgba(255,255,255,0.2); }
         .btn-secondary { background: transparent; border: 1px solid var(--accent-pink); color: var(--accent-pink); }
-        .btn-secondary:hover { background: rgba(255,45,117,0.1); }
         .btn-ready { width: 100%; padding: 20px; background: linear-gradient(135deg, var(--accent-yellow), #ff9900); color: #000; font-size: 1.5rem; border: none; border-radius: 12px; font-family: 'Orbitron'; font-weight: 900; cursor: pointer; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
@@ -54,12 +50,51 @@
         .divider span { padding: 0 10px; }
         .error-msg { color: var(--accent-pink); font-size: 0.85rem; margin-bottom: 15px; min-height: 20px; }
 
-       
         #lobby-screen { justify-content: flex-start; padding-top: 60px; gap: 20px; }
         .user-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 15px 30px; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; z-index: 20; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
         .user-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .user-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 0 15px rgba(255,45,117,0.3); }
         
+        /* --- CSS LEVEL & XP --- */
+        .user-info { text-align: left; min-width: 200px; }
+        .user-name { font-weight: 700; font-size: 1.1rem; }
+        
+        .level-container { margin-top: 2px; position: relative; }
+        .level-text { 
+            font-size: 0.75rem; color: var(--accent-cyan); 
+            font-family: 'Orbitron', sans-serif; 
+            display: inline-block; margin-bottom: 2px;
+        }
+        .level-text span { color: rgba(255,255,255,0.6); font-size: 0.7rem; font-weight: normal; font-family: 'Rajdhani'; margin-left: 5px; }
+        
+        .xp-bar-bg {
+            width: 100%; height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px; overflow: hidden;
+            position: relative;
+            display: block; /* Default tampil, di-hide JS jika guest */
+        }
+        .xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+            width: 0%; 
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+        .xp-text-inside {
+            position: absolute; 
+            right: 5px; top: 0; bottom: 0;
+            font-size: 0.6rem; line-height: 8px;
+            color: rgba(0,0,0,0.7); font-weight: bold;
+        }
+        @keyframes levelUpGlow {
+            0% { text-shadow: 0 0 5px var(--accent-yellow); transform: scale(1); }
+            50% { text-shadow: 0 0 20px var(--accent-yellow); transform: scale(1.2); color: var(--accent-yellow); }
+            100% { text-shadow: 0 0 5px var(--accent-yellow); transform: scale(1); }
+        }
+        .level-up-anim { animation: levelUpGlow 0.6s ease-out; }
+        /* ------------------- */
+
         .lobby-content { display: flex; gap: 20px; width: 100%; max-width: 1100px; height: 75vh; margin-top: 20px; }
         .lobby-left { flex: 2; display: flex; flex-direction: column; gap: 15px; }
         .lobby-right { flex: 1; background: var(--bg-card); border-radius: 12px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.1); height: 100%; }
@@ -79,11 +114,10 @@
         
         .chat-header { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); font-family: 'Orbitron'; font-size: 0.9rem; color: var(--accent-cyan); background: rgba(0,0,0,0.2); }
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; }
-        .chat-msg strong { color: var(--accent-pink); }
-        .chat-msg span.time { color: rgba(255,255,255,0.3); font-size: 0.7rem; margin-left: 5px; }
         .chat-input-area { padding: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
         .chat-input-area input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; color: #fff; outline: none; font-family: inherit; }
 
+        /* GAME AREA */
         #game-screen { position: relative; }
         #game-ui-top { position: absolute; top: 20px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; z-index: 20; pointer-events: none; }
         #game-ui-top button { pointer-events: auto; }
@@ -123,7 +157,6 @@
         .msg-sub { display: block; font-size: clamp(1rem, 3vw, 1.5rem); color: #ccc; margin-top: 10px; }
         .unit-ms { font-size: 0.4em; color: var(--accent-cyan); margin-left: 5px; text-transform: uppercase; letter-spacing: 2px; }
         
-        
         .ready-room { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 500px; margin-top: 100px; z-index: 20; }
         .ready-room.active { display: flex; }
         .match-vs { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 40px; }
@@ -143,7 +176,6 @@
         .stat-val { font-family: 'Orbitron'; font-size: 1.1rem; color: #fff; }
         .stat-lbl { font-size: 0.65rem; color: rgba(255,255,255,0.5); text-transform: uppercase; }
 
-       
         #result-modal, #profile-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; }
         #result-modal.show { display: flex; opacity: 1; }
         .result-box { background: var(--bg-card); border: 2px solid var(--accent-cyan); padding: 40px; border-radius: 20px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 0 50px rgba(0,245,255,0.2); animation: slideUp 0.4s ease-out; }
@@ -154,7 +186,7 @@
         .result-actions { margin-top: 30px; display: flex; gap: 10px; flex-direction: column; }
         .modal-content { background: var(--bg-card); padding: 30px; border-radius: 16px; width: 350px; text-align: center; border: 1px solid var(--accent-cyan); }
         .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .icon-option { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .icon-option { padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; transition: 0.2s; position: relative; }
         .icon-option:hover { background: rgba(0,245,255,0.2); }
     </style>
 </head>
@@ -169,41 +201,42 @@
 <div class="bg-grid"></div>
 <div class="vignette"></div>
 
-
 <div id="login-screen" class="screen active">
     <div class="login-box">
         <h1 class="login-logo">REACTION DUEL</h1>
         <p class="login-sub" style="margin-bottom: 30px;">Enter Arena</p>
-        
         <div id="login-error" class="error-msg"></div>
-
         <div class="input-group">
             <span class="input-label">USERNAME OR EMAIL</span>
-            <input type="text" id="login-id" class="input-field" placeholder="e.g. player123 or mail@example.com">
+            <input type="text" id="login-id" class="input-field" placeholder="e.g. player123">
         </div>
         <div class="input-group">
             <span class="input-label">PASSWORD</span>
             <input type="password" id="login-pass" class="input-field" placeholder="Password">
         </div>
-
         <button id="btn-login" class="btn-main">LOG IN</button>
         <button id="btn-register" class="btn-main btn-secondary">CREATE NEW ACCOUNT</button>
-
         <div class="divider"><span>OR</span></div>
-
         <button id="btn-guest" class="btn-main btn-guest">PLAY AS GUEST</button>
     </div>
 </div>
-
 
 <div id="lobby-screen" class="screen">
     <div class="user-bar">
         <div class="user-profile" onclick="UI.toggleProfile()">
             <div class="user-avatar" id="avatar-display"><i class="fas fa-user"></i></div>
-            <div class="user-info" style="text-align:left">
+            
+            <!-- Level & XP Bar -->
+            <div class="user-info">
                 <div class="user-name" id="display-username" style="font-weight:700">Guest</div>
-                <div class="user-level" id="display-level" style="font-size:0.8rem; color:var(--accent-cyan)">Unregistered</div>
+                <div class="level-container">
+                    <span class="level-text" id="display-level">Lvl 1 <span>0 / 200 XP</span></span>
+                    <div class="xp-bar-bg" id="xp-bar-container">
+                        <div class="xp-bar-fill" id="xp-fill"></div>
+                    </div>
+                </div>
             </div>
+            
         </div>
         <div style="display:flex; gap:10px;">
             <button class="btn-main" style="padding:6px 12px; font-size:0.7rem; width:auto; background:var(--accent-purple);" onclick="window.location.href='dashboard.html'">DASHBOARD</button>
@@ -213,24 +246,23 @@
 
     <div class="lobby-content">
         <div class="lobby-left">
-           
             <div class="how-to-play-card">
-                <div class="how-to-play-title"><i class="fas fa-gamepad"></i> CARA MAIN (HOW TO PLAY)</div>
+                <div class="how-to-play-title"><i class="fas fa-gamepad"></i> RULES & REWARDS</div>
                 <div class="tutorial-grid">
                     <div class="tut-item">
-                        <div class="tut-icon" style="color:var(--accent-green)"><i class="fas fa-recycle"></i></div>
-                        <div class="tut-text"><strong>KLik HIJAU</strong><br>Poin Normal</div>
+                        <div class="tut-icon" style="color:var(--accent-green)"><i class="fas fa-trophy"></i></div>
+                        <div class="tut-text"><strong>Win = 500 XP</strong><br>+ Level Up</div>
                     </div>
                     <div class="tut-item">
-                        <div class="tut-icon" style="color:var(--accent-yellow)"><i class="fas fa-gem"></i></div>
-                        <div class="tut-text"><strong>BONUS KUNING</strong><br>Hilang Cepat (+Poin)</div>
+                        <div class="tut-icon" style="color:var(--accent-yellow)"><i class="fas fa-medal"></i></div>
+                        <div class="tut-text"><strong>Lose = 100 XP</strong><br>Keep Progress</div>
                     </div>
                     <div class="tut-item">
-                        <div class="tut-icon" style="color:var(--accent-red)"><i class="fas fa-bomb"></i></div>
-                        <div class="tut-text"><strong>HINDARI MERAH</strong><br>Jangan Diklik!</div>
+                        <div class="tut-icon" style="color:var(--accent-pink)"><i class="fas fa-unlock"></i></div>
+                        <div class="tut-text"><strong>Level Up</strong><br>Unlock Icons!</div>
                     </div>
                 </div>
-                <p style="margin-top:10px; font-size:0.8rem; color:#aaa; text-align:center;">Jangan biarkan item hijau melewati timer!</p>
+                <p style="margin-top:10px; font-size:0.8rem; color:#aaa; text-align:center;">Max Level: 20. Guest mode gets no XP.</p>
             </div>
 
             <div class="panel">
@@ -245,7 +277,7 @@
         <div class="lobby-right">
             <div class="chat-header">GLOBAL CHAT</div>
             <div class="chat-messages" id="chat-box">
-                <div class="chat-msg"><span style="color:var(--accent-yellow)">System:</span> Welcome! Read rules before playing.</div>
+                <div class="chat-msg"><span style="color:var(--accent-yellow)">System:</span> Welcome!</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="chat-input" placeholder="Ketik pesan..." onkeypress="Chat.handleKey(event)">
@@ -254,18 +286,15 @@
     </div>
 </div>
 
-
+<!-- Game Screen (Same as before) -->
 <div id="game-screen" class="screen">
     <div id="game-ui-top">
-        <button onclick="Game.backToLobby()" style="background:rgba(255,45,117,0.8); border:none; color:white; padding:8px 15px; border-radius:6px; cursor:pointer; font-family:Orbitron; font-size:0.8rem; box-shadow:0 4px 10px rgba(0,0,0,0.3);">← EXIT</button>
+        <button onclick="Game.backToLobby()" style="background:rgba(255,45,117,0.8); border:none; color:white; padding:8px 15px; border-radius:6px; cursor:pointer; font-family:Orbitron; font-size:0.8rem;">← EXIT</button>
         <div id="round-indicator">MATCH 1 / 5</div>
         <div id="mode-indicator" style="font-size:0.8rem; color:#aaa;">MULTIPLAYER</div>
     </div>
-
-   
     <div id="ready-room" class="ready-room">
         <div class="msg-main" style="font-size:2rem; color:var(--accent-cyan); margin-bottom:20px;">MATCH FOUND!</div>
-        
         <div class="match-vs">
             <div class="player-card is-me">
                 <h3>YOU</h3>
@@ -273,9 +302,7 @@
                 <div id="ready-status-me" class="status-dot"></div>
                 <div id="ready-text-me" style="font-size:0.8rem; margin-top:5px;">NOT READY</div>
             </div>
-            
             <div style="font-size:2rem; font-weight:900; color:#fff;">VS</div>
-            
             <div class="player-card">
                 <h3 id="opponent-name">Opponent</h3>
                 <div class="user-avatar" style="margin:10px auto; width:60px; height:60px; background:#555;"><i class="fas fa-robot"></i></div>
@@ -283,12 +310,9 @@
                 <div id="ready-text-opp" style="font-size:0.8rem; margin-top:5px;">WAITING...</div>
             </div>
         </div>
-
         <button id="btn-ready-confirm" class="btn-ready" onclick="Game.confirmReady()">I AM READY</button>
     </div>
-
     <div id="combo-display">COMBO x<span id="combo-val">0</span></div>
-
     <div id="game-area" class="state-wait">
         <div class="color-overlay"></div>
         <div class="center-message">
@@ -297,7 +321,6 @@
         </div>
         <div id="trash-container"></div>
     </div>
-
     <div id="stats-panel">
         <div class="stat-box"><div class="stat-val" id="stat-avg">---</div><div class="stat-lbl">Avg</div></div>
         <div class="stat-box"><div class="stat-val" id="stat-best">---</div><div class="stat-lbl">Best</div></div>
@@ -305,14 +328,14 @@
     </div>
 </div>
 
-
+<!-- Result Modal -->
 <div id="result-modal">
     <div class="result-box">
         <div class="result-title">MATCH ENDED</div>
         <div class="result-row"><span>Result</span><span id="res-mode">Victory</span></div>
-        <div class="result-row"><span>Final Score</span><span id="res-score" style="color:var(--accent-yellow); font-size:1.5rem;">0</span></div>
+        <div class="result-row"><span>Score</span><span id="res-score" style="color:var(--accent-yellow); font-size:1.5rem;">0</span></div>
+        <div class="result-row"><span>XP Earned</span><span id="res-xp" style="color:var(--accent-green)">+0 XP</span></div>
         <div class="result-row"><span>Avg Reaction</span><span id="res-avg">---</span></div>
-        <div class="result-row"><span>Best Time</span><span id="res-best">---</span></div>
         <div class="result-actions">
             <button class="btn-main" onclick="UI.retryGame()">PLAY AGAIN</button>
             <button class="btn-main btn-secondary" onclick="Game.backToLobby()">BACK TO LOBBY</button>
@@ -320,10 +343,14 @@
     </div>
 </div>
 
-
+<!-- Profile Modal -->
 <div id="profile-modal" onclick="UI.toggleProfile()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h2 style="font-family:'Orbitron'; margin-bottom:20px;">MY PROFILE</h2>
+        <h2 style="font-family:'Orbitron'; margin-bottom:10px;">MY PROFILE</h2>
+        <div style="margin-bottom:20px;">
+            <span id="profile-level" style="color:var(--accent-yellow); font-family:Orbitron;">Level 1</span>
+            <div id="profile-next-unlock" style="font-size:0.8rem; color:#aaa;">Next Unlock: Level 2</div>
+        </div>
         <div id="icon-grid"></div>
         <button class="btn-main btn-secondary" onclick="UI.toggleProfile()">Close</button>
     </div>

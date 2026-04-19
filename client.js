@@ -177,7 +177,6 @@ const Auth = {
     },
     loginGuest: () => {
         const randomId = Math.floor(Math.random() * 10000);
-        // Guest tidak punya level, xp, atau icon custom
         const guestUser = { username: `Guest_${randomId}`, type: 'guest', icon: 'fa-ghost' };
         AppState.user = guestUser; AppState.isGuest = true; AppState.isLoggedIn = true;
         saveCurrentUser(AppState.user); 
@@ -210,16 +209,12 @@ const UI = {
         if (!AppState.user || !els.displayUser) return;
         els.displayUser.textContent = AppState.user.username;
 
-        // --- LOGIKA GUEST VS LOGIN ---
         if (AppState.isGuest) {
-            // Guest: Sembunyikan XP Bar, tampilkan teks biasa
             els.displayLvl.textContent = "Offline Mode";
-            els.displayLvl.style.color = "var(--accent-yellow)";
+            els.displayLvl.style.color = "#888";
             els.xpBarContainer.style.display = "none";
         } else {
-            // Login: Tampilkan Level & XP Bar
             els.xpBarContainer.style.display = "block";
-            
             const totalXP = AppState.user.totalXP || 0;
             const data = getLevelData(totalXP);
             
@@ -228,7 +223,6 @@ const UI = {
             els.displayLvl.innerHTML = lvlHtml;
             els.xpFill.style.width = `${data.progressPercent}%`;
         }
-
         els.avatar.innerHTML = `<i class="fas ${AppState.user.icon}"></i>`;
     },
     
@@ -254,7 +248,6 @@ const UI = {
         const currentData = getLevelData(totalXP);
         els.profileLevel.textContent = `Level ${currentData.level} (${currentData.currentXP} XP)`;
 
-        // Find next unlock
         const nextUnlock = Object.entries(ICON_UNLOCKS).find(([lvl, data]) => lvl > currentData.level);
         if(nextUnlock) els.profileNextUnlock.textContent = `Next Unlock: ${nextUnlock[1].name} at Lv.${nextUnlock[0]}`;
         else els.profileNextUnlock.textContent = "All Icons Unlocked!";
@@ -472,12 +465,10 @@ const Game = {
         els.gameArea.className = 'state-wait';
         els.msgMain.textContent = "FINISH";
         
-        // --- LOGIKA GUEST ---
         if(AppState.isGuest) {
             els.resXP.textContent = "+0 XP";
             els.resXP.style.color = "#666";
         } else {
-            // LOGIKA LOGIN
             const oldLevel = getLevelData(AppState.user.totalXP || 0).level;
             
             AppState.user.gamesPlayed++;
@@ -486,7 +477,6 @@ const Game = {
                 if(!AppState.user.bestTime || avg < AppState.user.bestTime) AppState.user.bestTime = avg;
             }
             
-            // Hitung XP
             let isWin = AppState.currentScore > 300;
             let xpEarned = isWin ? XP_REWARDS.WIN : XP_REWARDS.LOSE;
             AppState.user.totalXP = (AppState.user.totalXP || 0) + xpEarned;
@@ -495,7 +485,7 @@ const Game = {
             AppState.user.level = newLevelData.level;
 
             els.resXP.textContent = `+${xpEarned} XP`;
-            els.resXP.style.color = isWin ? "var(--accent-green)" : "var(--accent-yellow)";
+            els.resXP.style.color = isWin ? "var(--accent-green)" : "#888"; // Abu-abu jika kalah
 
             if(newLevelData.level > oldLevel) {
                 els.msgSub.innerHTML = `LEVEL UP! Lv.${newLevelData.level}`;
@@ -578,7 +568,7 @@ const Dashboard = {
                 <div class="history-item">
                     <div>
                         <div style="font-size:0.8rem; color:rgba(255,255,255,0.5);">${new Date(s.timestamp).toLocaleString('id-ID')}</div>
-                        <div style="margin-top:5px; font-size:0.9rem;">XP Gained: <span style="color:var(--accent-green)">${s.players[0].xp || 0} XP</span></div>
+                        <div style="margin-top:5px; font-size:0.9rem;">XP: <span style="color:var(--accent-green)">${s.players[0].xp || 0}</span></div>
                     </div>
                     <div class="history-stats">
                         <div>Skor: <span>${winner.score}</span></div>
@@ -593,8 +583,7 @@ const Dashboard = {
                 data: {
                     labels: sessions.slice(0,10).reverse().map((_,i)=>i+1),
                     datasets: [{
-                        label: 'Avg Time (ms)',
-                        data: sessions.slice(0,10).reverse().map(s => s.players[0]?.avgTime || 0),
+                        label: 'Avg Time (ms)', data: sessions.slice(0,10).reverse().map(s => s.players[0]?.avgTime || 0),
                         borderColor: '#00f5ff', tension: 0.4
                     }]
                 },
